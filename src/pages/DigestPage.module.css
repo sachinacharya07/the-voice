@@ -1,0 +1,30 @@
+.wrap{max-width:740px;margin:0 auto;padding:2.5rem 2rem 4rem}
+.masthead{text-align:center;padding:2rem 0 2.5rem;border-bottom:2px solid var(--black);margin-bottom:2.5rem}
+.vol{font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);margin-bottom:0.75rem}
+.masthead h1{font-family:var(--serif);font-size:42px;font-weight:700;margin-bottom:0.35rem}
+.masthead p{font-size:13px;color:var(--mid)}
+.loading{text-align:center;padding:3rem;color:var(--mid)}
+.empty{text-align:center;padding:3rem;color:var(--mid);font-style:italic}
+.topStory{margin-bottom:2.5rem}
+.sectionLabel{font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem}
+.sectionLabel::after{content:'';flex:1;height:1px;background:var(--border)}
+.topCard{display:flex;gap:1.25rem;align-items:flex-start;color:inherit;border:1.5px solid var(--border);padding:1.25rem;border-radius:var(--radius);transition:background 0.18s}
+.topCard:hover{background:var(--off)}
+.topImg{width:160px;height:110px;object-fit:cover;border-radius:3px;flex-shrink:0}
+.topBody{flex:1}
+.cat{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.5rem;display:block}
+.topBody h2{font-family:var(--serif);font-size:20px;font-weight:700;line-height:1.3;margin-bottom:0.5rem}
+.topBody p{font-size:13px;color:#555;line-height:1.6;font-weight:300;margin-bottom:0.5rem}
+.byline{font-size:11px;color:var(--mid)}
+.catSection{margin-bottom:2rem}
+.catHead{border-left:3px solid;padding-left:0.75rem;margin-bottom:1rem}
+.catHead span{font-size:13px;font-weight:700;letter-spacing:0.04em}
+.catList{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border)}
+.digestItem{display:flex;align-items:center;gap:1rem;background:var(--white);padding:0.9rem 1rem;color:inherit;transition:background 0.18s}
+.digestItem:hover{background:var(--off)}
+.rank{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--border);flex-shrink:0;width:28px}
+.digestBody{flex:1}
+.digestBody h3{font-family:var(--serif);font-size:15px;font-weight:700;line-height:1.3;margin-bottom:0.25rem}
+.digestBody span{font-size:11px;color:var(--mid)}
+.digestThumb{width:56px;height:40px;object-fit:cover;border-radius:3px;flex-shrink:0}
+@media(max-width:600px){.topCard{flex-direction:column}.topImg{width:100%;height:180px}.wrap{padding:1.5rem 1rem}}
