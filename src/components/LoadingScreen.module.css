@@ -1,0 +1,29 @@
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  gap: 1.5rem;
+}
+
+.logo {
+  font-family: var(--serif);
+  font-size: 52px;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: -1px;
+}
+
+.rule {
+  width: 48px;
+  height: 2px;
+  background: var(--red);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scaleX(1); opacity: 1; }
+  50% { transform: scaleX(0.4); opacity: 0.4; }
+}
