@@ -1,8 +1,0 @@
-.wrap { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-.hero { border-left: 4px solid; padding: 1.5rem 1.75rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; }
-.catTag { font-family: var(--serif); font-size: 28px; font-weight: 700; color: white; padding: 4px 16px; border-radius: 3px; }
-.count { font-size: 13px; color: var(--mid); }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
-.skeleton { height: 280px; background: linear-gradient(90deg,var(--off) 25%,var(--border) 50%,var(--off) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: var(--radius); }
-@keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
-.empty { text-align: center; padding: 5rem; font-size: 14px; color: var(--mid); font-style: italic; }
