@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&amp;display=swap');
+  </style>
+  <rect width="512" height="512" fill="#0d0d0d"/>
+  <!-- top rules -->
+  <line x1="40" y1="60" x2="472" y2="60" stroke="white" stroke-width="8"/>
+  <line x1="40" y1="74" x2="472" y2="74" stroke="white" stroke-width="2.5"/>
+  <!-- "the" italic -->
+  <text x="256" y="148" text-anchor="middle"
+    font-family="'Libre Baskerville', Georgia, serif"
+    font-size="56" font-style="italic" fill="white" letter-spacing="3">the</text>
+  <!-- Voice big -->
+  <text x="256" y="340" text-anchor="middle"
+    font-family="'Libre Baskerville', Georgia, serif"
+    font-size="210" font-weight="700" fill="white" letter-spacing="-4">V</text>
+  <!-- bottom rules -->
+  <line x1="40" y1="410" x2="472" y2="410" stroke="white" stroke-width="8"/>
+  <line x1="40" y1="424" x2="472" y2="424" stroke="white" stroke-width="2.5"/>
+  <!-- small tagline -->
+  <text x="256" y="470" text-anchor="middle"
+    font-family="'DM Sans', system-ui, sans-serif"
+    font-size="28" font-weight="600" fill="white" letter-spacing="6">VOICE</text>
+</svg>
