@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Search, X, Menu, ShieldCheck, PenLine, Bookmark, LayoutDashboard, Send, TrendingUp, LogOut, User, FileText, Home, ChevronRight } from 'lucide-react'
+import { Search, X, Menu, ShieldCheck, PenLine, Bookmark, LayoutDashboard, Send, TrendingUp, LogOut, FileText, Home, ChevronRight } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import styles from './Header.module.css'
 
@@ -15,18 +15,16 @@ const CATS = [
 
 export default function Header() {
   const { user, profile, logout, isAdmin, isWriter } = useAuth()
-  const navigate  = useNavigate()
-  const location  = useLocation()
+  const navigate   = useNavigate()
+  const location   = useLocation()
   const [drawer, setDrawer]   = useState(false)
   const [search, setSearch]   = useState(false)
   const [q, setQ]             = useState('')
-  const inputRef = useRef()
+  const inputRef  = useRef()
   const drawerRef = useRef()
 
-  // Close drawer on route change
   useEffect(() => { setDrawer(false) }, [location.pathname])
 
-  // Close drawer on outside click
   useEffect(() => {
     if (!drawer) return
     const handler = (e) => {
@@ -36,156 +34,143 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handler)
   }, [drawer])
 
-  // Lock body scroll when drawer open
   useEffect(() => {
     document.body.style.overflow = drawer ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [drawer])
 
-  // Focus search input when opened
   useEffect(() => {
     if (search && inputRef.current) inputRef.current.focus()
   }, [search])
 
   const handleSearch = (e) => {
     e.preventDefault()
-    if (q.trim()) {
-      navigate(`/search?q=${encodeURIComponent(q.trim())}`)
-      setSearch(false)
-      setQ('')
-    }
+    if (q.trim()) { navigate(`/search?q=${encodeURIComponent(q.trim())}`); setSearch(false); setQ('') }
   }
 
-  const date = new Date().toLocaleDateString('en-IN', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  })
-
-  const navActive = (path) => location.pathname === path ? styles.active : ''
+  const date = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  const active = (path) => location.pathname === path ? styles.active : ''
 
   return (
     <>
       <header className={styles.header}>
-        {/* Top bar */}
-        <div className={styles.topBar}>
-          <span className={styles.date}>{date}</span>
-          <div className={styles.topRight}>
-            <button className={styles.searchBtn} onClick={() => setSearch(s => !s)} aria-label="Search">
-              {search ? <X size={17} /> : <Search size={17} />}
-            </button>
-            <button className={styles.burgerBtn} onClick={() => setDrawer(true)} aria-label="Menu">
-              <Menu size={20} />
-            </button>
-          </div>
-        </div>
 
-        {/* Search bar */}
-        {search && (
-          <form className={styles.searchBar} onSubmit={handleSearch}>
-            <Search size={15} className={styles.searchIcon} />
-            <input
-              ref={inputRef}
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              placeholder="Search articles, topics, authors..."
-              className={styles.searchInput}
-            />
-            {q && (
-              <button type="button" className={styles.searchClear} onClick={() => setQ('')}>
-                <X size={14} />
+        {/* ── DESKTOP HEADER ─────────────────────────────── */}
+        <div className={styles.desktopHeader}>
+          {/* Top utility bar */}
+          <div className={styles.topBar}>
+            <span className={styles.date}>{date}</span>
+            <div className={styles.topActions}>
+              <button className={styles.iconBtn} onClick={() => setSearch(s => !s)}>
+                {search ? <X size={15}/> : <Search size={15}/>}
               </button>
-            )}
-            <button type="submit" className={styles.searchGo}>Go</button>
-          </form>
-        )}
-
-        {/* Masthead */}
-        <div className={styles.masthead}>
-          <div className={styles.mastheadTop}>TRUTH · ESTD. 2026 · COURAGE · IMPACT</div>
-          <div className={styles.logoWrap}>
-            <span className={styles.logoThe}>the</span>
-            <Link to="/" className={styles.logo}>Voice</Link>
+              {user ? (
+                <>
+                  {isWriter && <Link to="/write" className={styles.writeBtn}><PenLine size={12}/> Write</Link>}
+                  {isAdmin  && <Link to="/admin" className={styles.adminBtn}><ShieldCheck size={12}/> Admin</Link>}
+                  <Link to={`/profile/${user.uid}`} className={styles.avatar}>
+                    {profile?.photo
+                      ? <img src={profile.photo} alt="" referrerPolicy="no-referrer"/>
+                      : <span>{(profile?.name||'U')[0].toUpperCase()}</span>}
+                  </Link>
+                  <button className={styles.iconBtn} onClick={logout} title="Sign out"><LogOut size={15}/></button>
+                </>
+              ) : (
+                <Link to="/auth" className={styles.writeBtn}>Sign in</Link>
+              )}
+            </div>
           </div>
-          <p className={styles.tagline}>Independent Student Journalism</p>
+
+          {/* Search bar */}
+          {search && (
+            <form className={styles.searchBar} onSubmit={handleSearch}>
+              <Search size={15} className={styles.searchIcon}/>
+              <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)}
+                placeholder="Search articles, topics, authors..." className={styles.searchInput}/>
+              {q && <button type="button" onClick={() => setQ('')} className={styles.searchClear}><X size={13}/></button>}
+              <button type="submit" className={styles.searchGo}>Go</button>
+            </form>
+          )}
+
+          {/* Masthead — clean newspaper style, no tagline clutter */}
+          <div className={styles.masthead}>
+            <div className={styles.mastheadRule}/>
+            <Link to="/" className={styles.logo}>The Voice</Link>
+            <div className={styles.mastheadSub}>
+              <span className={styles.mastheadLine}/>
+              <span className={styles.mastheadTag}>Independent Student Journalism · Est. 2026</span>
+              <span className={styles.mastheadLine}/>
+            </div>
+            <div className={styles.mastheadRule}/>
+          </div>
+
+          {/* Nav */}
+          <nav className={styles.nav}>
+            <Link to="/"            className={`${styles.navItem} ${active('/')}`}>Home</Link>
+            {CATS.map(c => (
+              <Link key={c.key} to={`/category/${c.key}`}
+                className={`${styles.navItem} ${active(`/category/${c.key}`)}`}>{c.label}</Link>
+            ))}
+            <Link to="/trending"    className={`${styles.navItem} ${active('/trending')}`}>Trending</Link>
+            <Link to="/digest"      className={`${styles.navItem} ${active('/digest')}`}>Digest</Link>
+          </nav>
         </div>
 
-        {/* Desktop nav */}
-        <nav className={styles.desktopNav}>
-          <Link to="/" className={`${styles.navItem} ${navActive('/')}`}>Home</Link>
-          {CATS.map(c => (
-            <Link key={c.key} to={`/category/${c.key}`}
-              className={`${styles.navItem} ${navActive(`/category/${c.key}`)}`}>
-              {c.label}
-            </Link>
-          ))}
-          <Link to="/trending" className={`${styles.navItem} ${navActive('/trending')}`}>Trending</Link>
-          <Link to="/digest"   className={`${styles.navItem} ${navActive('/digest')}`}>Digest</Link>
-          {/* Desktop only quick actions */}
-          <div className={styles.desktopActions}>
-            {user && isWriter && (
-              <Link to="/write" className={styles.writeBtn}><PenLine size={13}/> Write</Link>
-            )}
-            {isAdmin && (
-              <Link to="/admin" className={styles.adminBtn}><ShieldCheck size={13}/> Admin</Link>
-            )}
+        {/* ── MOBILE HEADER ──────────────────────────────── */}
+        <div className={styles.mobileHeader}>
+          <div className={styles.mobileTopBar}>
+            <button className={styles.mobileIconBtn} onClick={() => setSearch(s => !s)}>
+              {search ? <X size={18}/> : <Search size={18}/>}
+            </button>
+            <Link to="/" className={styles.mobileLogo}>The Voice</Link>
+            <button className={styles.mobileIconBtn} onClick={() => setDrawer(true)}>
+              <Menu size={20}/>
+            </button>
           </div>
-        </nav>
+          {search && (
+            <form className={styles.searchBar} onSubmit={handleSearch}>
+              <Search size={15} className={styles.searchIcon}/>
+              <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)}
+                placeholder="Search..." className={styles.searchInput}/>
+              {q && <button type="button" onClick={() => setQ('')} className={styles.searchClear}><X size={13}/></button>}
+              <button type="submit" className={styles.searchGo}>Go</button>
+            </form>
+          )}
+        </div>
+
       </header>
 
-      {/* Drawer overlay */}
-      {drawer && <div className={styles.overlay} onClick={() => setDrawer(false)} />}
-
-      {/* Side drawer */}
+      {/* ── SIDE DRAWER (mobile only) ───────────────────── */}
+      {drawer && <div className={styles.overlay} onClick={() => setDrawer(false)}/>}
       <aside className={`${styles.drawer} ${drawer ? styles.drawerOpen : ''}`} ref={drawerRef}>
-        {/* Drawer header */}
         <div className={styles.drawerHead}>
-          <div className={styles.drawerLogo}>
-            <span className={styles.drawerLogoThe}>the</span>
-            <span className={styles.drawerLogoMain}>Voice</span>
-          </div>
-          <button className={styles.drawerClose} onClick={() => setDrawer(false)}>
-            <X size={20} />
-          </button>
+          <span className={styles.drawerLogo}>The Voice</span>
+          <button className={styles.drawerClose} onClick={() => setDrawer(false)}><X size={18}/></button>
         </div>
 
-        {/* User profile strip */}
         {user ? (
-          <div className={styles.drawerUser}>
-            <Link to={`/profile/${user.uid}`} className={styles.drawerUserInfo} onClick={() => setDrawer(false)}>
-              {profile?.photo
-                ? <img src={profile.photo} alt="" className={styles.drawerAvatar} referrerPolicy="no-referrer" />
-                : <span className={styles.drawerAvatarInit}>{(profile?.name || 'U')[0].toUpperCase()}</span>}
-              <div>
-                <strong>{profile?.name || 'My Profile'}</strong>
-                <span>{profile?.role || 'Reader'}</span>
-              </div>
-              <ChevronRight size={14} className={styles.drawerChevron} />
-            </Link>
-          </div>
+          <Link to={`/profile/${user.uid}`} className={styles.drawerUser} onClick={() => setDrawer(false)}>
+            {profile?.photo
+              ? <img src={profile.photo} alt="" className={styles.drawerAvatar} referrerPolicy="no-referrer"/>
+              : <span className={styles.drawerAvatarInit}>{(profile?.name||'U')[0].toUpperCase()}</span>}
+            <div><strong>{profile?.name}</strong><span>{profile?.role||'Reader'}</span></div>
+            <ChevronRight size={14} style={{marginLeft:'auto',color:'var(--mid)'}}/>
+          </Link>
         ) : (
-          <div className={styles.drawerUserGuest}>
-            <Link to="/auth" className={styles.drawerSignIn} onClick={() => setDrawer(false)}>
-              Sign in to write, like & save
-            </Link>
-          </div>
+          <Link to="/auth" className={styles.drawerGuestBanner} onClick={() => setDrawer(false)}>
+            Sign in to write, save & like →
+          </Link>
         )}
 
-        {/* Navigation */}
         <div className={styles.drawerSection}>
-          <div className={styles.drawerSectionLabel}>Navigate</div>
-          <Link to="/" className={styles.drawerItem} onClick={() => setDrawer(false)}>
-            <Home size={16} /> Home
-          </Link>
-          <Link to="/trending" className={styles.drawerItem} onClick={() => setDrawer(false)}>
-            <TrendingUp size={16} /> Trending
-          </Link>
-          <Link to="/digest" className={styles.drawerItem} onClick={() => setDrawer(false)}>
-            <FileText size={16} /> Weekly Digest
-          </Link>
+          <p className={styles.drawerLabel}>Navigate</p>
+          <Link to="/"         className={styles.drawerItem} onClick={() => setDrawer(false)}><Home size={15}/>Home</Link>
+          <Link to="/trending" className={styles.drawerItem} onClick={() => setDrawer(false)}><TrendingUp size={15}/>Trending</Link>
+          <Link to="/digest"   className={styles.drawerItem} onClick={() => setDrawer(false)}><FileText size={15}/>Weekly Digest</Link>
         </div>
 
-        {/* Categories */}
         <div className={styles.drawerSection}>
-          <div className={styles.drawerSectionLabel}>Sections</div>
+          <p className={styles.drawerLabel}>Sections</p>
           {CATS.map(c => (
             <Link key={c.key} to={`/category/${c.key}`} className={styles.drawerItem} onClick={() => setDrawer(false)}>
               {c.label}
@@ -193,55 +178,29 @@ export default function Header() {
           ))}
         </div>
 
-        {/* User actions */}
         {user && (
           <div className={styles.drawerSection}>
-            <div className={styles.drawerSectionLabel}>My Account</div>
-            {isWriter && (
-              <Link to="/write" className={styles.drawerItem} onClick={() => setDrawer(false)}>
-                <PenLine size={16} /> Write an Article
-              </Link>
-            )}
-            <Link to="/dashboard" className={styles.drawerItem} onClick={() => setDrawer(false)}>
-              <LayoutDashboard size={16} /> My Dashboard
-            </Link>
-            <Link to="/read-later" className={styles.drawerItem} onClick={() => setDrawer(false)}>
-              <Bookmark size={16} /> Saved Articles
-            </Link>
-            <Link to="/tip" className={styles.drawerItem} onClick={() => setDrawer(false)}>
-              <Send size={16} /> Send a Tip
-            </Link>
-            {isAdmin && (
-              <Link to="/admin" className={`${styles.drawerItem} ${styles.drawerAdmin}`} onClick={() => setDrawer(false)}>
-                <ShieldCheck size={16} /> Editorial Desk
-              </Link>
-            )}
+            <p className={styles.drawerLabel}>My Account</p>
+            {isWriter && <Link to="/write"     className={styles.drawerItem} onClick={() => setDrawer(false)}><PenLine size={15}/>Write Article</Link>}
+            <Link to="/dashboard"  className={styles.drawerItem} onClick={() => setDrawer(false)}><LayoutDashboard size={15}/>My Dashboard</Link>
+            <Link to="/read-later" className={styles.drawerItem} onClick={() => setDrawer(false)}><Bookmark size={15}/>Saved Articles</Link>
+            <Link to="/tip"        className={styles.drawerItem} onClick={() => setDrawer(false)}><Send size={15}/>Send a Tip</Link>
+            {isAdmin && <Link to="/admin" className={`${styles.drawerItem} ${styles.drawerAdmin}`} onClick={() => setDrawer(false)}><ShieldCheck size={15}/>Editorial Desk</Link>}
           </div>
         )}
 
         {!user && (
           <div className={styles.drawerSection}>
-            <div className={styles.drawerSectionLabel}>Join Us</div>
-            <Link to="/apply" className={styles.drawerItem} onClick={() => setDrawer(false)}>
-              <PenLine size={16} /> Apply to Write
-            </Link>
-            <Link to="/tip" className={styles.drawerItem} onClick={() => setDrawer(false)}>
-              <Send size={16} /> Send a Tip
-            </Link>
+            <p className={styles.drawerLabel}>Join</p>
+            <Link to="/apply" className={styles.drawerItem} onClick={() => setDrawer(false)}><PenLine size={15}/>Apply to Write</Link>
+            <Link to="/tip"   className={styles.drawerItem} onClick={() => setDrawer(false)}><Send size={15}/>Send a Tip</Link>
           </div>
         )}
 
-        {/* Bottom actions */}
         <div className={styles.drawerBottom}>
-          {user ? (
-            <button className={styles.drawerLogout} onClick={() => { logout(); setDrawer(false) }}>
-              <LogOut size={15} /> Sign out
-            </button>
-          ) : (
-            <Link to="/auth" className={styles.drawerSignInBtn} onClick={() => setDrawer(false)}>
-              Sign in
-            </Link>
-          )}
+          {user
+            ? <button className={styles.drawerLogout} onClick={() => { logout(); setDrawer(false) }}><LogOut size={14}/>Sign out</button>
+            : <Link to="/auth" className={styles.drawerSignIn} onClick={() => setDrawer(false)}>Sign in</Link>}
         </div>
       </aside>
     </>
