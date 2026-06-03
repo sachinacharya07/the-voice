@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0a0a0a"/>
+  <rect x="40" y="58" width="432" height="6" fill="#fafaf8"/>
+  <rect x="40" y="70" width="432" height="2" fill="#fafaf8"/>
+  <text x="256" y="210" text-anchor="middle"
+    font-family="Georgia,'Times New Roman',serif"
+    font-size="88" font-weight="700" fill="#fafaf8" letter-spacing="4">THE</text>
+  <text x="256" y="340" text-anchor="middle"
+    font-family="Georgia,'Times New Roman',serif"
+    font-size="110" font-weight="700" fill="#fafaf8" letter-spacing="-2">VOICE</text>
+  <rect x="40" y="370" width="432" height="5" fill="#c0392b"/>
+  <rect x="40" y="381" width="432" height="2" fill="#fafaf8"/>
+</svg>
