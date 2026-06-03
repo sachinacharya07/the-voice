@@ -16,8 +16,10 @@ export default function NotificationSettings() {
       await disablePush(user?.uid)
       setMsg('Notifications disabled.')
     } else {
-      const ok = await enablePush(user?.uid)
-      setMsg(ok ? '✓ Notifications enabled!' : 'Permission denied. Enable in browser settings.')
+      const result = await enablePush(user?.uid)
+      if (result === true) setMsg('✓ Notifications enabled!')
+      else if (result === 'denied') setMsg('Blocked — enable notifications in browser Settings → Site Settings.')
+      else setMsg('Something went wrong. Try refreshing the page.')
     }
     setLoading(false)
   }
