@@ -5,7 +5,7 @@ const webpush = require('web-push')
 const { initializeApp, getApps, cert } = require('firebase-admin/app')
 const { getFirestore } = require('firebase-admin/firestore')
 
-const VAPID_PUBLIC  = 'BN5mU9Cdw3invMuKF11AWrY-reayQH11LXWdwI8oFKTeWjyHl7meISb5NWFvOrfbC_676WT6hQuBAHNA5XR1yGY'
+const VAPID_PUBLIC = 'BLnvEQcC6BO1QMZ2LZEClao0ttS9-7aCrTA77ObdCTkTV8lwZSXesJIZ2YoqRmtTnI6_95py-xn8d4cHde3O8wA'
 const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY
 const VAPID_EMAIL   = 'mailto:the.voice.of.students01@gmail.com'
 const ADMIN_EMAIL   = 'tisa.helpdesk@gmail.com'
