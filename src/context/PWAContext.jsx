@@ -8,8 +8,7 @@ export const usePWA = () => useContext(Ctx)
 // VAPID public key — replace with your own from web-push library
 // To generate: npx web-push generate-vapid-keys
 // For now using a placeholder — push won't work until replaced
-export const VAPID_PUBLIC_KEY = 'BN5mU9Cdw3invMuKF11AWrY-reayQH11LXWdwI8oFKTeWjyHl7meISb5NWFvOrfbC_676WT6hQuBAHNA5XR1yGY'
-
+export const VAPID_PUBLIC_KEY = 'BLnvEQcC6BO1QMZ2LZEClao0ttS9-7aCrTA77ObdCTkTV8lwZSXesJIZ2YoqRmtTnI6_95py-xn8d4cHde3O8wA'
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
