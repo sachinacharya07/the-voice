@@ -34,9 +34,15 @@ export default function PWABanner() {
 
   const handlePush = async () => {
     setPushStatus('loading')
-    const ok = await enablePush(user?.uid)
-    setPushStatus(ok ? 'done' : 'denied')
-    if (ok) setTimeout(() => setShowPush(false), 2000)
+    const result = await enablePush(user?.uid)
+    if (result === true) {
+      setPushStatus('done')
+      setTimeout(() => setShowPush(false), 2000)
+    } else if (result === 'denied') {
+      setPushStatus('blocked')
+    } else {
+      setPushStatus('error')
+    }
   }
 
   const handleDisablePush = async () => {
@@ -78,8 +84,9 @@ export default function PWABanner() {
             </div>
           </div>
           <div className={styles.bannerRight}>
-            {pushStatus === 'done' && <span className={styles.doneMsg}>✓ Notifications on</span>}
-            {pushStatus === 'denied' && <span className={styles.deniedMsg}>Permission denied</span>}
+            {pushStatus === 'done'    && <span className={styles.doneMsg}>✓ Notifications on</span>}
+            {pushStatus === 'blocked' && <span className={styles.deniedMsg}>Blocked in browser settings</span>}
+            {pushStatus === 'error'   && <span className={styles.deniedMsg}>Failed — try refreshing</span>}
             {(pushStatus === 'idle' || pushStatus === 'loading') && (
               <button className={styles.installBtn} onClick={handlePush} disabled={pushStatus === 'loading'}>
                 <Bell size={14}/> {pushStatus === 'loading' ? 'Enabling...' : 'Enable'}
