@@ -60,17 +60,27 @@ export function PWAProvider({ children }) {
   const enablePush = async (userId) => {
     if (!pushSupported || !swReady) return false
     try {
-      const permission = await Notification.requestPermission()
-      if (permission !== 'granted') return false
+      // Check existing permission first — don't call requestPermission() if already granted
+      // (calling it on a previously-denied-then-manually-allowed permission can return stale state)
+      let permission = Notification.permission
+      if (permission === 'default') {
+        permission = await Notification.requestPermission()
+      }
+      if (permission !== 'granted') return 'denied'
 
       const reg = await navigator.serviceWorker.ready
       let sub = await reg.pushManager.getSubscription()
-      if (!sub) {
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        })
+
+      // If there's a stale/broken subscription, clear it and resubscribe fresh
+      if (sub) {
+        try { await sub.unsubscribe() } catch {}
+        sub = null
       }
+
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      })
 
       // Save subscription to Firestore
       if (userId) {
