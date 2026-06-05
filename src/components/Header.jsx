@@ -153,6 +153,10 @@ export default function Header() {
           <Link to="/"         className={styles.drawerItem} onClick={() => setDrawer(false)}><Home size={15}/>Home</Link>
           <Link to="/trending" className={styles.drawerItem} onClick={() => setDrawer(false)}><TrendingUp size={15}/>Trending</Link>
           <Link to="/digest"   className={styles.drawerItem} onClick={() => setDrawer(false)}><FileText size={15}/>Weekly Digest</Link>
+          <Link to="/originals" className={styles.drawerItem} onClick={() => setDrawer(false)}><Star size={15}/>Originals</Link>
+          <Link to="/explained" className={styles.drawerItem} onClick={() => setDrawer(false)}><FileText size={15}/>Explained</Link>
+          <Link to="/bplus"     className={styles.drawerItem} onClick={() => setDrawer(false)}><TrendingUp size={15}/>B+ Good News</Link>
+          <Link to="/epaper"    className={styles.drawerItem} onClick={() => setDrawer(false)}><FileText size={15}/>E-Paper</Link>
         </div>
         <div className={styles.drawerSection}>
           <p className={styles.drawerLabel}>Sections</p>
