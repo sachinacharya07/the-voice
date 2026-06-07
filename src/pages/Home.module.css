@@ -200,6 +200,14 @@
   color: var(--black);
   flex: 1;
 }
+.stackText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.75rem 0.9rem;
+  flex: 1;
+  min-width: 0;
+}
 .stackMeta { font-size: 10px; color: var(--mid); }
 
 /* ── MID ROW ──────────────────────────────────────────── */
@@ -442,6 +450,7 @@
   color: var(--black);
   margin-bottom: 0.3rem;
 }
+.bplusText { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.75rem 0.9rem; flex: 1; min-width: 0; }
 .bplusMeta { font-size: 10px; color: var(--mid); }
 
 /* E-Paper: issue cards */
@@ -658,39 +667,111 @@
   .bplusRow { grid-template-columns: repeat(2,1fr); }
 }
 @media (max-width: 900px) {
+  /* Stack hero above secondary */
   .heroSection { grid-template-columns: 1fr; }
   .heroLeft { border-right: none; border-bottom: 1.5px solid var(--border); }
-  .heroNoImg { border-right: none; border-bottom: 1.5px solid var(--border); height: auto; min-height: 300px; }
-  .secondaryStack { flex-direction: row; overflow-x: auto; scrollbar-width: none; }
+  .heroNoImg { border-right: none; border-bottom: 1.5px solid var(--border); height: auto; min-height: 280px; }
+  /* Secondary: horizontal scroll chips */
+  .secondaryStack { flex-direction: row; overflow-x: auto; scrollbar-width: none; border-top: 1px solid var(--border); }
   .secondaryStack::-webkit-scrollbar { display: none; }
-  .stackCard { min-width: 200px; border-bottom: none; border-right: 1px solid var(--border); flex-shrink: 0; }
+  .stackCard { min-width: 220px; border-bottom: none; border-right: 1px solid var(--border); flex-shrink: 0; }
+  /* Tablet mid row */
   .midRow { grid-template-columns: 1fr 1fr; }
   .explainedRow { grid-template-columns: 1fr 1fr; }
   .epaperRow { grid-template-columns: 1fr 1fr; }
   .originalsGrid { grid-template-columns: 1fr; }
   .origFeatured { border-right: none; border-bottom: 1px solid var(--border); }
 }
+
 @media (max-width: 600px) {
-  .container { padding: 0 1rem; }
-  .heroImg { height: 270px; }
-  .heroHed { font-size: 21px; }
-  .heroDek { display: none; }
-  .ticker { padding: 0.4rem 1rem; }
+  /* ── GLOBAL ── */
+  .container { padding: 0; }
+  .ticker { padding: 0.5rem 1rem; font-size: 11px; }
   .dateline { display: none; }
-  .midRow { grid-template-columns: 1fr; }
-  .midCol { border-right: none; border-bottom: 1px solid var(--border); }
-  .grid { grid-template-columns: 1fr; }
-  .grid > * { border-right: none; }
-  .secondaryStack { flex-direction: column; }
-  .stackCard { min-width: unset; border-right: none; flex-direction: row; gap: 0.65rem; align-items: flex-start; }
-  .stackImg { width: 80px; height: 65px; flex-shrink: 0; }
+
+  /* ── HERO ── */
+  .heroSection { grid-template-columns: 1fr; border-bottom: none; }
+  .heroLeft { border-right: none; border-bottom: none; }
+  .heroImg { height: 56vw; min-height: 220px; max-height: 300px; }
+  .heroHed { font-size: 22px; line-height: 1.15; letter-spacing: -0.02em; }
+  .heroDek { display: none; }
+  .heroOverlayText { padding: 1.25rem 1rem 1.1rem; }
+
+  /* ── SECONDARY STACK → vertical list below hero ── */
+  .secondaryStack {
+    flex-direction: column;
+    border-top: 3px solid var(--black);
+  }
+  .stackCard {
+    min-width: unset;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    /* horizontal: image left, text right */
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    padding: 0;
+  }
+  .stackAccent { display: none; }
+  .stackImg {
+    width: 100px;
+    min-width: 100px;
+    height: 75px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+  }
+  .stackImg img { height: 100%; }
+  .stackText { padding: 0.5rem 0.75rem; gap: 0.2rem; }
+  .stackText .cat { display: none; }
+  .stackHed { font-size: 13.5px; line-height: 1.35; }
+  .stackMeta { font-size: 10px; }
+
+  /* ── MID ROW → hidden on mobile, too dense ── */
+  .midRow { display: none; }
+
+  /* ── OPINION SIDEBAR → hidden ── */
+  .opinionSidebar { display: none; }
+
+  /* ── EDITORIAL STRIPS ── */
+  .editorialStrip { padding: 1.75rem 1rem 0; }
+  .stripHead { flex-direction: row; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
+  .stripDivider { flex: 1; height: 1px; background: var(--border); }
+  .stripTitle h2 { font-size: 16px; }
+  .stripBadge { font-size: 7.5px; padding: 2px 6px; }
+  .stripSeeAll { font-size: 10px; white-space: nowrap; }
+
+  /* Originals: full width stacked */
+  .originalsGrid { grid-template-columns: 1fr; }
+  .origFeatured { border-right: none; border-bottom: 1px solid var(--border); }
+  .origFeatImg { height: 48vw; max-height: 220px; }
+  .origFeatHed { font-size: 17px; }
+  .origSmall { padding: 0.9rem 0; }
+  .origSmallHed { font-size: 13px; }
+
+  /* Explained: single column */
   .explainedRow { grid-template-columns: 1fr; }
-  .epaperRow { grid-template-columns: 1fr; }
+  .explainImg { height: 36vw; max-height: 160px; }
+
+  /* B+: single column */
   .bplusRow { grid-template-columns: 1fr; }
-  .stripHead { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-  .stripDivider { display: none; }
-  /* mobile breathing room */
-  .editorialStrip { padding-top: 2rem; padding-bottom: 0.5rem; }
-  .contentRow { padding-top: 2rem; }
-  .sectionHead { margin-bottom: 1rem; }
+  .bplusCard { display: flex; flex-direction: row; gap: 0; padding: 0; align-items: center; }
+  .bplusImg { width: 90px; min-width: 90px; height: 70px; margin-bottom: 0; flex-shrink: 0; border-right: 1px solid var(--border); }
+  .bplusText { padding: 0.5rem 0.75rem; gap: 0.2rem; }
+  .bplusText .cat { display: none; }
+  .bplusHed { font-size: 13px; }
+  .bplusMeta { font-size: 10px; }
+
+  /* E-Paper: single column */
+  .epaperRow { grid-template-columns: 1fr; }
+  .epaperCard { display: flex; flex-direction: row; gap: 0; padding: 0; }
+  .epaperThumb { width: 100px; min-width: 100px; height: 120px; margin-bottom: 0; flex-shrink: 0; border-right: 1px solid var(--border); }
+  .epaperCard > div:last-child { padding: 0.75rem; }
+
+  /* ── MORE STORIES ── */
+  .contentRow { padding: 1.75rem 0 0; }
+  .mainFeed { padding: 0 1rem; }
+  .sectionHead { margin-bottom: 0.75rem; }
+  .sectionHead h2 { font-size: 15px; }
+  .grid { grid-template-columns: 1fr; border-left: none; border-right: none; }
+  .grid > * { border-right: none; border-left: none; }
 }
