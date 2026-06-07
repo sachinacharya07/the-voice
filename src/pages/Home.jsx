@@ -99,11 +99,8 @@ export default function Home(){
   const midRow    = articles.slice(4,7)
   const opinions  = articles.filter(a=>a.category==='opinion').slice(0,3)
   const originals = articles.filter(a=>a.isOriginal||a.isLongform).slice(0,3)
-    .concat(articles.slice(0,3)).slice(0,3)  // fallback to recent
   const explained = articles.filter(a=>a.isExplained).slice(0,3)
-    .concat(articles.slice(0,3)).slice(0,3)
   const bplus     = articles.filter(a=>a.isBplus||a.isPositive).slice(0,4)
-    .concat(articles.slice(0,4)).slice(0,4)
   const trending  = articles.slice(0,5)
   const more      = articles.slice(7,15)
 
@@ -169,9 +166,11 @@ export default function Home(){
                     <Link key={a.id} to={`/article/${a.id}`} className={styles.stackCard}>
                       <div className={styles.stackAccent}/>
                       {a.coverImage&&<div className={styles.stackImg}><img src={a.coverImage} alt="" loading="lazy" decoding="async" onLoad={e=>{e.target.style.opacity=1;e.target.style.filter="blur(0)"}} style={{opacity:0,filter:"blur(8px)",transition:"opacity 0.4s ease, filter 0.4s ease"}}/></div>}
-                      <CatBadge cat={a.category}/>
-                      <h3 className={styles.stackHed}>{a.title}</h3>
-                      <div className={styles.stackMeta}>{ago(a.publishedAt)} · {readTime(a.body)} min</div>
+                      <div className={styles.stackText}>
+                        <CatBadge cat={a.category}/>
+                        <h3 className={styles.stackHed}>{a.title}</h3>
+                        <div className={styles.stackMeta}>{ago(a.publishedAt)} · {readTime(a.body)} min</div>
+                      </div>
                     </Link>
                   ))}
                 </div>
@@ -208,7 +207,7 @@ export default function Home(){
             <HomePoll/>
 
             {/* ── ORIGINALS ── */}
-            <SectionStrip title="The Voice Originals" badge="Exclusive" badgeColor="#0d0d0d" seeAllTo="/originals">
+            {originals.length>0&&<SectionStrip title="The Voice Originals" badge="Exclusive" badgeColor="#0d0d0d" seeAllTo="/originals">
               <div className={styles.originalsGrid}>
                 {originals[0]&&(
                   <Link to={`/article/${originals[0].id}`} className={styles.origFeatured}>
@@ -233,10 +232,10 @@ export default function Home(){
                   ))}
                 </div>
               </div>
-            </SectionStrip>
+            </SectionStrip>}
 
             {/* ── EXPLAINED ── */}
-            <SectionStrip title="Explained" badge="Q&A" badgeColor="#185FA5" seeAllTo="/explained">
+            {explained.length>0&&<SectionStrip title="Explained" badge="Q&A" badgeColor="#185FA5" seeAllTo="/explained">
               <div className={styles.explainedRow}>
                 {explained.map(a=>(
                   <Link key={a.id} to={`/article/${a.id}`} className={styles.explainCard}>
@@ -255,21 +254,23 @@ export default function Home(){
                   </Link>
                 ))}
               </div>
-            </SectionStrip>
+            </SectionStrip>}
 
             {/* ── B+ ── */}
-            <SectionStrip title="B+" badge="Good News" badgeColor="#0F6E56" seeAllTo="/bplus">
+            {bplus.length>0&&<SectionStrip title="B+" badge="Good News" badgeColor="#0F6E56" seeAllTo="/bplus">
               <div className={styles.bplusRow}>
                 {bplus.map(a=>(
                   <Link key={a.id} to={`/article/${a.id}`} className={styles.bplusCard}>
                     {a.coverImage&&<div className={styles.bplusImg}><img src={a.coverImage} alt="" loading="lazy"/></div>}
-                    <CatBadge cat={a.category}/>
-                    <h3 className={styles.bplusHed}>{a.title}</h3>
-                    <div className={styles.bplusMeta}>{a.authorName} · {ago(a.publishedAt)}</div>
+                    <div className={styles.bplusText}>
+                      <CatBadge cat={a.category}/>
+                      <h3 className={styles.bplusHed}>{a.title}</h3>
+                      <div className={styles.bplusMeta}>{a.authorName} · {ago(a.publishedAt)}</div>
+                    </div>
                   </Link>
                 ))}
               </div>
-            </SectionStrip>
+            </SectionStrip>}
 
             {/* ── E-PAPER ── */}
             <SectionStrip title="E-Paper" badge="PDF" badgeColor="#993556" seeAllTo="/epaper">
