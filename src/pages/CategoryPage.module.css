@@ -1,0 +1,43 @@
+.wrap{max-width:1200px;margin:0 auto;padding:2rem}
+.hero{border-left:4px solid;padding:1.25rem 1.5rem;margin-bottom:2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.catTag{font-family:var(--serif);font-size:26px;font-weight:700;color:white;padding:4px 16px;border-radius:3px}
+.count{font-size:13px;color:var(--mid)}
+.error{background:#fef0f0;border:1px solid #fcc;color:var(--red);padding:0.75rem 1rem;border-radius:var(--radius);font-size:13px;margin-bottom:1.5rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem}
+.skeleton{height:280px;background:linear-gradient(90deg,var(--off) 25%,var(--border) 50%,var(--off) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:var(--radius)}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.empty{text-align:center;padding:5rem;font-size:14px;color:var(--mid);font-style:italic}
+@media(max-width:600px){.wrap{padding:1rem}.grid{grid-template-columns:1fr}.catTag{font-size:20px}}
+
+[data-theme="dark"] .skeleton { background: linear-gradient(90deg,#141414 25%,#222 50%,#141414 75%); background-size:200% 100%; }
+[data-theme="dark"] .error { background: #1a0000; border-color: #4a0000; }
+
+/* ── Used by Originals / Explained / B+ pages ── */
+.catHead {
+  text-align: center;
+  border-bottom: 3px double var(--black);
+  padding-bottom: 2rem;
+  margin-bottom: 2.5rem;
+}
+.catLabel {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  margin-bottom: 0.75rem;
+}
+.catTitle {
+  font-family: var(--serif);
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.5rem;
+}
+.catDesc { font-size: 14px; color: var(--mid); }
+
+/* ── dark mode for catHead ── */
+[data-theme="dark"] .catHead { border-color: #333; }
+[data-theme="dark"] .catTitle { color: #f0ede8; }
+[data-theme="dark"] .catDesc { color: #777; }
