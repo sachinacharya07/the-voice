@@ -112,10 +112,13 @@ export default function WritePage() {
 
   const handleSubmit=async()=>{
     if(!form.title.trim()||!form.body.trim()){setError('Headline and article body required.');return}
+    if(form.title.trim().length>300){setError('Headline must be under 300 characters.');return}
+    if(form.body.trim().length>150000){setError('Article body too long (max ~25,000 words).');return}
+    if(form.summary.trim().length>600){setError('Summary must be under 600 characters.');return}
     if(uploading){setError('Please wait for image upload to finish.');return}
     setSubmitting(true);setError('')
     const data={
-      title:form.title.trim(),category:form.category,subGenre:form.subGenre.trim(),summary:form.summary.trim(),
+      title:form.title.trim().slice(0,300),category:form.category,subGenre:form.subGenre.trim().replace(/<[^>]*>/g,'').slice(0,80),summary:form.summary.trim().slice(0,600),
       body:form.body.trim(),pullQuote:form.pullQuote.trim(),
       coAuthorName:form.coAuthorName.trim(),coAuthorEmail:form.coAuthorEmail.trim(),
       coverImage:coverImage||null,inlineImages,tags,
