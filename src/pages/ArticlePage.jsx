@@ -184,7 +184,7 @@ export default function ArticlePage() {
 
   useEffect(() => {
     const ref = doc(db,'articles',id)
-    getDoc(ref).then(snap => {
+    getDoc(ref).then(async snap => {
       if(!snap.exists()){navigate('/not-found',{replace:true});return}
       const data={id:snap.id,...snap.data()}
       setArticle(data)
