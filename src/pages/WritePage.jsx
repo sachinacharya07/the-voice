@@ -8,6 +8,16 @@ import { uploadImage } from '../lib/cloudinary'
 import PageWrapper from '../components/PageWrapper'
 import styles from './WritePage.module.css'
 
+function insertFormat(ta, before, after, placeholder) {
+  const start = ta.selectionStart
+  const end = ta.selectionEnd
+  const selected = ta.value.substring(start, end)
+  const insertion = before + (selected || placeholder) + after
+  const value = ta.value.substring(0, start) + insertion + ta.value.substring(end)
+  const cursor = start + before.length + (selected || placeholder).length + after.length
+  return { value, cursor }
+}
+
 const CATEGORIES = [
   {value:'school',label:'School & College'},{value:'science',label:'Science & Technology'},
   {value:'sports',label:'Sports'},{value:'arts',label:'Arts & Culture'},
