@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext'
 import Header from './components/Header'
 import LoadingScreen from './components/LoadingScreen'
 import PWABanner from './components/PWABanner'
+import BreakingBanner from './components/BreakingBanner'
 import Footer from './components/Footer'
 
 const Home            = lazy(() => import('./pages/Home'))
@@ -44,6 +45,7 @@ export default function App() {
   return (
     <>
       <Header />
+      <BreakingBanner />
       <PWABanner />
       <Suspense fallback={<LoadingScreen />}>
         <AnimatePresence mode="wait">
