@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { addDoc, collection, serverTimestamp, query, where, getDocs, limit } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import styles from './NewsletterSignup.module.css'
 
@@ -19,6 +19,8 @@ export default function NewsletterSignup({ compact = false }) {
       })
       setStatus('success')
       setEmail('')
+      // Open mail client with confirmation instructions
+      // This is optional — just show nice message for now
     } catch {
       setStatus('error')
     }
@@ -28,7 +30,7 @@ export default function NewsletterSignup({ compact = false }) {
     <div className={styles.compact}>
       <p className={styles.compactTitle}>📬 Get The Voice in your inbox</p>
       {status === 'success'
-        ? <p className={styles.successMsg}>You're subscribed!</p>
+        ? <p className={styles.successMsg}>✓ Subscribed! Check your inbox Sunday.</p>
         : (
           <form onSubmit={subscribe} className={styles.compactForm}>
             <input value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" type="email" className={styles.compactInput}/>
