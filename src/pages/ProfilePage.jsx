@@ -6,6 +6,7 @@ import ArticleCard from '../components/ArticleCard'
 import PageWrapper from '../components/PageWrapper'
 import styles from './ProfilePage.module.css'
 import NotificationSettings from '../components/NotificationSettings'
+import { useAuth } from '../context/AuthContext'
 
 export default function ProfilePage() {
   const { uid } = useParams()
@@ -51,6 +52,8 @@ export default function ProfilePage() {
     </PageWrapper>
   )
 
+  const { user } = useAuth()
+  const isSelf = user?.uid === uid
   const totalLikes = articles.reduce((s,a)=>s+(a.likes||0),0)
   const totalViews = articles.reduce((s,a)=>s+(a.views||0),0)
 
@@ -79,8 +82,10 @@ export default function ProfilePage() {
         )}
         {articles.length===0&&<div className={styles.empty}>No published articles yet.</div>}
 
-        <div className={styles.sectionHead} style={{marginTop:'2.5rem'}}><h2>Notification Settings</h2></div>
-        <NotificationSettings/>
+        {isSelf&&<>
+          <div className={styles.sectionHead} style={{marginTop:'2.5rem'}}><h2>Notification Settings</h2></div>
+          <NotificationSettings/>
+        </>}
       </div>
     </PageWrapper>
   )
