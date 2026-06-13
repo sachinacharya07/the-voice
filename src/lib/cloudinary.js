@@ -1,6 +1,14 @@
 import { CLOUDINARY_CLOUD, CLOUDINARY_PRESET } from './firebase'
 
 export async function uploadImage(file) {
+  // Validate file type and size before uploading
+  const ALLOWED_TYPES = ['image/jpeg','image/png','image/webp','image/gif']
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new Error('Invalid file type. Use JPG, PNG, WEBP, or GIF.')
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error('Image must be under 10MB.')
+  }
   const fd = new FormData()
   fd.append('file', file)
   fd.append('upload_preset', CLOUDINARY_PRESET)
