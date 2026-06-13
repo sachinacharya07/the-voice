@@ -1,9 +1,9 @@
 // Vercel serverless — POST /api/article-published
 // Called from admin when approving an article to auto-notify subscribers
-
-const webpush = require('web-push')
-const { initializeApp, getApps, cert } = require('firebase-admin/app')
-const { getFirestore } = require('firebase-admin/firestore')
+import webpush from 'web-push'
+import { initializeApp, getApps, cert } from 'firebase-admin/app'
+import { getFirestore } from 'firebase-admin/firestore'
+import { getAuth } from 'firebase-admin/auth'
 
 const VAPID_PUBLIC  = 'DC0kTIGIPpAvOS0-4lJaFUkaQzVR7fnll6I846BdApGrPGxo7b3AiXCbuyHe00j83hr2qWfwvM8JJt8myWGVUw'
 const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY
@@ -25,8 +25,8 @@ function getDb() {
   return getFirestore()
 }
 
-module.exports = async (req, res) => {
-  const origin = req.headers.origin || ''
+export default async function handler(req, res) {
+  const origin  = req.headers.origin || ''
   const allowed = process.env.ALLOWED_ORIGIN || `https://${process.env.VERCEL_URL}`
   res.setHeader('Access-Control-Allow-Origin', origin === allowed ? origin : allowed)
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -35,9 +35,8 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  // Auth check
+  // Auth check — verify admin Firebase token
   try {
-    const { getAuth } = require('firebase-admin/auth')
     const token = req.headers.authorization?.split('Bearer ')[1]
     if (!token) return res.status(401).json({ error: 'No token' })
     const decoded = await getAuth().verifyIdToken(token)
@@ -46,10 +45,16 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Invalid token' })
   }
 
-  const { articleId, title, summary, coverImage, category } = req.body
-  if (!articleId || !title) return res.status(400).json({ error: 'Missing fields' })
+  const { articleId, title, summary, coverImage, category } = req.body || {}
+  if (!articleId || typeof articleId !== 'string' || articleId.length > 128)
+    return res.status(400).json({ error: 'Invalid articleId' })
+  if (!title || typeof title !== 'string' || title.length > 300)
+    return res.status(400).json({ error: 'Invalid title' })
 
-  const catLabels = { school:'School & College', science:'Science & Tech', sports:'Sports', arts:'Arts & Culture', world:'World', opinion:'Opinion' }
+  const catLabels = {
+    school:'School & College', science:'Science & Tech',
+    sports:'Sports', arts:'Arts & Culture', world:'World', opinion:'Opinion'
+  }
   const payload = JSON.stringify({
     title,
     body:  summary || `New ${catLabels[category] || 'article'} just published on The Voice`,
@@ -59,13 +64,13 @@ module.exports = async (req, res) => {
     tag:   `article-${articleId}`
   })
 
-  const db = getDb()
+  const db   = getDb()
   const snap = await db.collection('pushSubscriptions').get()
   let sent = 0, removed = 0
 
   await Promise.allSettled(
     snap.docs.map(async d => {
-      const { subscription, userId } = d.data()
+      const { subscription } = d.data()
       if (!subscription) return
       try {
         await webpush.sendNotification(subscription, payload)

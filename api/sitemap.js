@@ -28,6 +28,7 @@ const STATIC_PAGES = [
 const CATEGORIES = ['school','science','sports','arts','world','opinion']
 
 export default async function handler(req, res) {
+  if (req.method !== 'GET') { res.setHeader('Allow','GET'); return res.status(405).send('Method not allowed') }
   res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate')
   res.setHeader('Content-Type', 'application/xml; charset=utf-8')
 
@@ -75,7 +76,6 @@ export default async function handler(req, res) {
 ${urlset}
 </urlset>`)
   } catch (err) {
-    console.error('Sitemap error:', err)
     res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>')
   }
 }
