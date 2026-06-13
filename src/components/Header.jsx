@@ -22,6 +22,9 @@ export default function Header() {
   const [drawer, setDrawer] = useState(false)
   const [search, setSearch] = useState(false)
   const [q, setQ] = useState('')
+  const [suggestions, setSuggestions] = useState([])
+  const [suggIdx, setSuggIdx] = useState(-1)
+  const suggestCache = useRef(null)
   const inputRef  = useRef()
   const drawerRef = useRef()
 
@@ -40,7 +43,29 @@ export default function Header() {
 
   const handleSearch = (e) => {
     e.preventDefault()
-    if (q.trim()) { navigate(`/search?q=${encodeURIComponent(q.trim())}`); setSearch(false); setQ('') }
+    const chosen = suggIdx >= 0 && suggestions[suggIdx]
+    if (chosen) { navigate(`/article/${chosen.id}`); setSearch(false); setQ(''); setSuggestions([]) }
+    else if (q.trim()) { navigate(`/search?q=${encodeURIComponent(q.trim())}`); setSearch(false); setQ(''); setSuggestions([]) }
+  }
+
+  const handleSearchKey = (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setSuggIdx(i => Math.min(i+1, suggestions.length-1)) }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setSuggIdx(i => Math.max(i-1, -1)) }
+    else if (e.key === 'Escape') { setSearch(false); setSuggestions([]) }
+  }
+
+  const fetchSuggestions = async (val) => {
+    if (val.trim().length < 2) { setSuggestions([]); return }
+    try {
+      if (!suggestCache.current) {
+        const { collection, query, where, orderBy, getDocs, limit } = await import('firebase/firestore')
+        const { db } = await import('../lib/firebase')
+        const snap = await getDocs(query(collection(db,'articles'),where('status','==','published'),orderBy('publishedAt','desc'),limit(100)))
+        suggestCache.current = snap.docs.map(d=>({id:d.id,title:d.data().title||'',category:d.data().category||''}))
+      }
+      const w = val.toLowerCase()
+      setSuggestions(suggestCache.current.filter(a=>a.title.toLowerCase().includes(w)).slice(0,5))
+    } catch { setSuggestions([]) }
   }
 
   const date = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -79,10 +104,25 @@ export default function Header() {
           {search && (
             <form className={styles.searchBar} onSubmit={handleSearch}>
               <Search size={15} className={styles.searchIcon}/>
-              <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} placeholder="Search articles, topics, authors..." className={styles.searchInput}/>
+              <input ref={inputRef} value={q}
+                onChange={e=>{setQ(e.target.value);fetchSuggestions(e.target.value);setSuggIdx(-1)}}
+                onKeyDown={handleSearchKey}
+                placeholder="Search articles, topics, authors..." className={styles.searchInput}/>
               {q && <button type="button" onClick={() => setQ('')} className={styles.searchClear}><X size={13}/></button>}
               <button type="submit" className={styles.searchGo}>Go</button>
             </form>
+          )}
+          {search && suggestions.length > 0 && (
+            <div className={styles.suggestions}>
+              {suggestions.map((s,i)=>(
+                <button key={s.id}
+                  className={`${styles.suggestion} ${i===suggIdx?styles.suggActive:''}`}
+                  onMouseDown={()=>{navigate(`/article/${s.id}`);setSearch(false);setSuggestions([]);setQ('')}}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  <span>{s.title}</span>
+                </button>
+              ))}
+            </div>
           )}
 
           {/* THE VOICE masthead — The Hindu style */}
@@ -101,8 +141,12 @@ export default function Header() {
             {CATS.map(c => (
               <Link key={c.key} to={`/category/${c.key}`} className={`${styles.navItem} ${active(`/category/${c.key}`)}`}>{c.label}</Link>
             ))}
-            <Link to="/trending" className={`${styles.navItem} ${active('/trending')}`}>Trending</Link>
-            <Link to="/digest"   className={`${styles.navItem} ${active('/digest')}`}>Digest</Link>
+            <Link to="/trending"  className={`${styles.navItem} ${active('/trending')}`}>Trending</Link>
+            <Link to="/digest"    className={`${styles.navItem} ${active('/digest')}`}>Digest</Link>
+            <Link to="/originals" className={`${styles.navItem} ${active('/originals')}`}>Originals</Link>
+            <Link to="/explained" className={`${styles.navItem} ${active('/explained')}`}>Explained</Link>
+            <Link to="/bplus"     className={`${styles.navItem} ${active('/bplus')}`}>B+</Link>
+            <Link to="/epaper"    className={`${styles.navItem} ${active('/epaper')}`}>E-Paper</Link>
           </nav>
         </div>
 

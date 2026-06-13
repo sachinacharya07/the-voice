@@ -82,3 +82,7 @@
   font-size: 20px; font-weight: 700;
   margin: 0 auto 0.75rem;
 }
+
+[data-theme="dark"] .successFull { background: #0a0a0a; }
+[data-theme="dark"] .successMsg { color: #888; }
+[data-theme="dark"] .success h3 { color: #f0ede8; }

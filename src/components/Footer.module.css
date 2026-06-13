@@ -56,3 +56,12 @@
   .bottom { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
   .inner { padding: 2rem 1rem 1rem; }
 }
+
+[data-theme="dark"] .tag { color: #666; }
+[data-theme="dark"] .colHead { color: #888; }
+[data-theme="dark"] .footer { background: #050505; border-color: #1a1a1a; }
+[data-theme="dark"] .bottom { border-color: #1a1a1a; color: #555; }
+[data-theme="dark"] .col a { color: #666; }
+[data-theme="dark"] .col a:hover { color: #f0ede8; }
+[data-theme="dark"] .socialIcon { color: #555; }
+[data-theme="dark"] .socialIcon:hover { color: #f0ede8; }

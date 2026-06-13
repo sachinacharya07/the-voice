@@ -242,3 +242,38 @@
 @media (min-width: 769px) {
   .overlay, .drawer { display: none !important; }
 }
+
+/* ── SEARCH SUGGESTIONS ────────────────────────────── */
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0; right: 0;
+  background: var(--white);
+  border: 1.5px solid var(--black);
+  border-top: none;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+}
+.suggestion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.65rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 13px;
+  font-family: var(--sans);
+  color: var(--black);
+  cursor: pointer;
+  transition: background 0.12s;
+  font-weight: 500;
+}
+.suggestion:last-child { border-bottom: none; }
+.suggestion:hover, .suggActive { background: var(--off); }
+.suggestion svg { flex-shrink: 0; color: var(--mid); }
+[data-theme="dark"] .suggestions { background: #111; border-color: #333; }
+[data-theme="dark"] .suggestion { color: #f0ede8; border-color: #222; }
+[data-theme="dark"] .suggestion:hover, [data-theme="dark"] .suggActive { background: #1a1a1a; }

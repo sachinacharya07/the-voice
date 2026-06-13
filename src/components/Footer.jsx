@@ -65,6 +65,10 @@ export default function Footer() {
               <p className={styles.colHead}>Discover</p>
               <Link to="/trending">Trending</Link>
               <Link to="/digest">Weekly Digest</Link>
+              <Link to="/originals">The Voice Originals</Link>
+              <Link to="/explained">Explained</Link>
+              <Link to="/bplus">B+ Good News</Link>
+              <Link to="/epaper">E-Paper</Link>
               <Link to="/read-later">Saved Articles</Link>
             </div>
             <div className={styles.col}>

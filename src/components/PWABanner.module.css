@@ -50,3 +50,5 @@
   .banner { bottom: 0.5rem; padding: 0.75rem; }
   .bannerLeft span { display: none; }
 }
+
+[data-theme="dark"] .doneMsg { color: #888; }

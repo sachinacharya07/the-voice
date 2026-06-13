@@ -12,3 +12,7 @@
 .submit{width:100%;padding:0.75rem;background:var(--black);color:white;border:none;font-size:13px;font-weight:600;border-radius:var(--radius)}
 .submit:disabled{opacity:0.4;cursor:not-allowed}
 .success{text-align:center;padding:1.5rem;font-size:14px;color:#065f46;font-weight:600}
+
+[data-theme="dark"] .success { background: #0a0a0a; color: #f0ede8; }
+[data-theme="dark"] .modal { background: #111; }
+[data-theme="dark"] .title { color: #f0ede8; }
