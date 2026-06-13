@@ -5,8 +5,26 @@
       "destination": "/api/sitemap"
     },
     {
+      "source": "/api/digest",
+      "destination": "/api/digest"
+    },
+    {
+      "source": "/og",
+      "destination": "/api/og"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/digest",
+      "schedule": "30 3 * * 0"
+    },
+    {
+      "path": "/api/sitemap",
+      "schedule": "0 2 * * *"
     }
   ]
 }
