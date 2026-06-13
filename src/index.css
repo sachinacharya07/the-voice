@@ -29,3 +29,19 @@ img { max-width: 100%; display: block; }
 ::-webkit-scrollbar-track { background: var(--off); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--mid); }
+
+[data-theme="dark"] {
+  --black: #f0ede8;
+  --white: #0d0d0d;
+  --off: #111111;
+  --border: #262626;
+  --mid: #666660;
+}
+[data-theme="dark"] body {
+  background: #0d0d0d;
+  color: #f0ede8;
+}
+[data-theme="dark"] ::-webkit-scrollbar-track { background: #111; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #333; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #555; }
+[data-theme="dark"] ::selection { background: #f0ede8; color: #0d0d0d; }
