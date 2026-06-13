@@ -1,5 +1,5 @@
-const CACHE_NAME = 'the-voice-v1'
-const STATIC_ASSETS = ['/', '/manifest.json', '/favicon.svg']
+const CACHE_NAME = 'the-voice-v2'
+const STATIC_ASSETS = ['/', '/manifest.json', '/favicon.svg', '/offline.html']
 
 // Install - cache static assets
 self.addEventListener('install', e => {
@@ -23,7 +23,7 @@ self.addEventListener('fetch', e => {
   if (e.request.mode === 'navigate') {
     e.respondWith(
       fetch(e.request).catch(() =>
-        caches.match('/').then(r => r || fetch(e.request))
+        caches.match(e.request).then(r => r || caches.match('/offline.html'))
       )
     )
     return

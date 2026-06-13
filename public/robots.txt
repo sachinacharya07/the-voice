@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin
+Disallow: /write
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /edit/
+Allow: /
+
+Sitemap: https://the-voicee-lac.vercel.app/sitemap.xml
