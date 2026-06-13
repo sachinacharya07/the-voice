@@ -4,6 +4,7 @@ import { collection, query, where, orderBy, getDocs, limit } from 'firebase/fire
 import { db } from '../lib/firebase'
 import PageWrapper from '../components/PageWrapper'
 import styles from './SearchPage.module.css'
+import EmptyState from '../components/EmptyState'
 
 // ── constants ────────────────────────────────────────────
 const CAT_LABELS = { school:'School & College', science:'Science & Tech', sports:'Sports', arts:'Arts & Culture', world:'World', opinion:'Opinion' }
@@ -276,27 +277,19 @@ export default function SearchPage() {
 
         {/* ── states ── */}
         {!hasQ && (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            </div>
-            <p>Type to search across all published articles</p>
-            <div className={styles.suggestions}>
-              {['CBSE','science','opinion','sports','arts'].map(s => (
-                <button key={s} className={styles.chip} onClick={() => handleInput(s)}>#{s}</button>
+          <div>
+            <EmptyState type="search" title="Search The Voice" message="Search across all published articles, authors, topics and tags."/>
+            <div className={styles.suggestions} style={{justifyContent:'center',display:'flex',flexWrap:'wrap',gap:'0.5rem',paddingBottom:'2rem'}}>
+              {['CBSE','science','opinion','sports','arts'].map(s=>(
+                <button key={s} className={styles.chip} onClick={()=>handleInput(s)}>#{s}</button>
               ))}
             </div>
           </div>
         )}
-
-        {hasQ && !loading && results.length === 0 && !error && (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            </div>
-            <p>No articles found for <strong>"{inputVal.trim()}"</strong></p>
-            {catFilter && <p className={styles.subHint}>Try clearing the section filter</p>}
-          </div>
+        {hasQ && !loading && results.length===0 && !error && (
+          <EmptyState type="search"
+            title={`No results for "${inputVal.trim()}"`}
+            message={catFilter?'Try clearing the section filter or broadening your search.':'Try different keywords or check the spelling.'}/>
         )}
 
         {/* ── loading skeletons ── */}

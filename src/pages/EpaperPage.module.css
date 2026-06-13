@@ -141,3 +141,8 @@
   .wrap { padding: 1.5rem 1rem 3rem; }
   .grid { grid-template-columns: 1fr; }
 }
+
+[data-theme="dark"] .badge { background: #7a1f3d; }
+[data-theme="dark"] .desc { color: #777; }
+[data-theme="dark"] .masthead { border-color: #222; }
+[data-theme="dark"] .masthead h1 { color: #f0ede8; }

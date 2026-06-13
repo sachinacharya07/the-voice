@@ -353,3 +353,7 @@
   .grid { grid-template-columns: 1fr; }
   .editName { font-size: 20px; }
 }
+
+[data-theme="dark"] .statsCol { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.05); }
+[data-theme="dark"] .tabCount { background: rgba(255,255,255,0.08); }
+[data-theme="dark"] .settingsSection { background: #0a0a0a; }

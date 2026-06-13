@@ -5,6 +5,7 @@ import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext'
 import PageWrapper from '../components/PageWrapper'
 import styles from './WriterDashboard.module.css'
+import EmptyState from '../components/EmptyState'
 import { Eye, Heart, Edit, Clock, CheckCircle, AlertCircle, Trash2, BookOpen, Tag, TrendingUp, Bookmark } from 'lucide-react'
 
 const CAT_LABELS = { school:'School & College', science:'Science & Tech', sports:'Sports', arts:'Arts & Culture', world:'World', opinion:'Opinion' }
@@ -178,10 +179,13 @@ export default function WriterDashboard(){
             {[...Array(3)].map((_,i)=><div key={i} className={styles.skeleton}/>)}
           </div>
         ):shown.length===0?(
-          <div className={styles.empty}>
-            <p>{tab==='all'?"You haven't submitted any articles yet.":`No ${tab} articles.`}</p>
-            {tab==='all'&&<Link to="/write" className={styles.writeBtn}>Write your first article</Link>}
-          </div>
+          <EmptyState
+            type={tab==='bookmarks'?'bookmark':tab==='all'?'write':'empty'}
+            title={tab==='all'?"No articles yet":`No ${tab} articles`}
+            message={tab==='all'?"Start writing and your articles will appear here.":tab==='pending'?"No articles currently under review.":tab==='rejected'?"No rejected articles.":"No published articles yet."}
+            action={tab==='all'?()=>window.location.href='/write':undefined}
+            actionLabel={tab==='all'?"Write your first article":undefined}
+          />
         ):(
           <div className={styles.list}>
             {/* views chart header for published tab */}

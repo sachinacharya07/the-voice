@@ -165,3 +165,12 @@
 }
 .toolbarBtn:hover { background: var(--white); border-color: var(--border); }
 .toolbarSep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+
+[data-theme="dark"] .autosave { color: #555; }
+[data-theme="dark"] .successIcon { background: #f0ede8; color: #0d0d0d; }
+[data-theme="dark"] .toolbar { background: #111; border-color: #333; }
+[data-theme="dark"] .toolbarBtn { color: #888; }
+[data-theme="dark"] .toolbarBtn:hover { background: #1a1a1a; border-color: #444; color: #f0ede8; }
+[data-theme="dark"] .hint { color: #555; }
+[data-theme="dark"] .imgMarker { background: #1a1a1a; }
+[data-theme="dark"] .checkLabel { color: #ccc; }

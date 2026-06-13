@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { collection, query, where, orderBy, getDocs, updateDoc, deleteDoc, doc, serverTimestamp, limit, setDoc, addDoc } from 'firebase/firestore'
+import { collection, query, where, orderBy, getDocs, getDoc, updateDoc, deleteDoc, doc, serverTimestamp, limit, setDoc, addDoc } from 'firebase/firestore'
 import { CheckCircle, XCircle, Eye, Users, FileText, TrendingUp, Shield, Star, AlertTriangle, Send, Bell, Mail, Upload, Trash2 } from 'lucide-react'
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext'
@@ -44,6 +44,7 @@ export default function AdminPage() {
   const [tab, setTab]         = useState('pending')
   const [data, setData]       = useState({})
   const [tabLoading, setTabLoading] = useState(false)
+  const [error, setError] = useState('')
   const [stats, setStats]     = useState(null)
   const [correction, setCorrection] = useState({})
   const [breaking, setBreaking]     = useState('')
@@ -57,25 +58,21 @@ export default function AdminPage() {
 
   // Load pinned article id once
   useEffect(()=>{
-    import('../lib/firebase').then(({db})=>{
-      import('firebase/firestore').then(({doc,getDoc})=>{
-        getDoc(doc(db,'settings','pinnedHero')).then(snap=>{
-          if(snap.exists()) setPinnedId(snap.data().articleId||null)
-        }).catch(()=>{})
-      })
-    })
+    getDoc(doc(db,'settings','pinnedHero')).then(snap=>{
+      if(snap.exists()) setPinnedId(snap.data().articleId||null)
+    }).catch(()=>{})
   },[])
 
   const togglePin = async(articleId) => {
-    const {db} = await import('../lib/firebase')
-    const {doc,setDoc,deleteDoc} = await import('firebase/firestore')
-    if(pinnedId===articleId){
-      await deleteDoc(doc(db,'settings','pinnedHero'))
-      setPinnedId(null)
-    } else {
-      await setDoc(doc(db,'settings','pinnedHero'),{articleId,updatedAt:new Date()})
-      setPinnedId(articleId)
-    }
+    try{
+      if(pinnedId===articleId){
+        await deleteDoc(doc(db,'settings','pinnedHero'))
+        setPinnedId(null)
+      } else {
+        await setDoc(doc(db,'settings','pinnedHero'),{articleId,updatedAt:serverTimestamp()})
+        setPinnedId(articleId)
+      }
+    }catch(e){ alert('Failed to pin: '+e.message) }
   }
 
   // E-Paper upload state
@@ -121,10 +118,21 @@ export default function AdminPage() {
   // After mutation, clear cache for affected tab and reload
   const refresh=(t)=>setData(d=>{ const n={...d}; delete n[t]; return n })
 
-  const approve=async(id)=>{
+  const approve=async(id, scheduleDate=null)=>{
     try {
       const issueData=(issueVol&&issueNum)?{issue:{vol:issueVol,num:issueNum}}:{}
-      await updateDoc(doc(db,'articles',id),{status:'published',publishedAt:serverTimestamp(),...issueData})
+      // Scheduled publishing
+      let scheduled = null
+      if (scheduleDate) {
+        const d = new Date(scheduleDate)
+        if (!isNaN(d.getTime()) && d > new Date()) scheduled = d
+      }
+      await updateDoc(doc(db,'articles',id),{
+        status: scheduled ? 'scheduled' : 'published',
+        publishedAt: scheduled ? scheduled : serverTimestamp(),
+        ...(scheduled ? {scheduledFor: scheduled} : {}),
+        ...issueData,
+      })
       refresh('pending'); refresh('published')
       setStats(s=>s?{...s,pending:Math.max(0,s.pending-1),total:s.total+1}:s)
       // Send push notification to all subscribers
@@ -180,22 +188,68 @@ export default function AdminPage() {
     setData(d=>({...d,published:(d.published||[]).map(a=>a.id===id?{...a,factChecked:!current}:a)}))
   }
 
-  const addCorrection=async(id)=>{
+  const addCorrection=async(id,tab='published')=>{
     if(!correction[id]?.trim())return
-    await updateDoc(doc(db,'articles',id),{correction:correction[id].trim()})
+    const text=correction[id].trim()
+    await updateDoc(doc(db,'articles',id),{
+      correction:text,
+      correctionDate:serverTimestamp(),
+    })
     setCorrection(c=>({...c,[id]:''}))
-    setData(d=>({...d,pending:(d.pending||[]).map(a=>a.id===id?{...a,correction:correction[id]}:a)}))
+    setData(d=>({...d,[tab]:(d[tab]||[]).map(a=>a.id===id?{...a,correction:text}:a)}))
   }
 
   const updateRole=async(uid,role)=>{
-    await updateDoc(doc(db,'users',uid),{role})
-    setData(d=>({...d,users:(d.users||[]).map(u=>u.id===uid?{...u,role}:u)}))
+    const VALID_ROLES=['reader','writer','editor','admin']
+    if(!VALID_ROLES.includes(role)){alert('Invalid role');return}
+    try{
+      await updateDoc(doc(db,'users',uid),{role})
+      setData(d=>({...d,users:(d.users||[]).map(u=>u.id===uid?{...u,role}:u)}))
+    }catch(e){alert('Failed to update role: '+e.message)}
   }
 
-  const approveApplication=async(id,uid)=>{
-    await updateDoc(doc(db,'users',uid),{role:'writer'})
-    await updateDoc(doc(db,'applications',id),{status:'approved'})
-    setData(d=>({...d,applications:(d.applications||[]).map(a=>a.id===id?{...a,status:'approved'}:a)}))
+  const approveApplication=async(id,uid,email,name)=>{
+    try{
+      await updateDoc(doc(db,'users',uid),{role:'writer'})
+      await updateDoc(doc(db,'applications',id),{status:'approved',reviewedAt:serverTimestamp()})
+      setData(d=>({...d,applications:(d.applications||[]).map(a=>a.id===id?{...a,status:'approved'}:a)}))
+      // Open mail to congratulate
+      const subj=encodeURIComponent(`Your application to The Voice — Approved!`)
+      const body=encodeURIComponent(`Hi ${name||''},
+
+Congratulations! Your application to write for The Voice has been approved.
+
+You can now log in and start writing at ${window.location.origin}/write
+
+Welcome to the team!
+
+— The Voice Editorial Team`)
+      window.open(`mailto:${email}?subject=${subj}&body=${body}`)
+    }catch(e){alert('Approval failed: '+e.message)}
+  }
+
+  const rejectApplication=async(id,email,name)=>{
+    const reason=prompt(`Reason for rejecting ${name||email} (will be sent to them):`)
+    if(reason===null)return
+    try{
+      await updateDoc(doc(db,'applications',id),{status:'rejected',rejectionReason:reason,reviewedAt:serverTimestamp()})
+      setData(d=>({...d,applications:(d.applications||[]).map(a=>a.id===id?{...a,status:'rejected'}:a)}))
+      if(reason&&email){
+        const subj=encodeURIComponent(`Your application to The Voice`)
+        const body=encodeURIComponent(`Hi ${name||''},
+
+Thank you for applying to write for The Voice.
+
+After careful review, we're unable to approve your application at this time.
+
+Feedback: ${reason}
+
+You're welcome to apply again in the future.
+
+— The Voice Editorial Team`)
+        window.open(`mailto:${email}?subject=${subj}&body=${body}`)
+      }
+    }catch(e){alert('Rejection failed: '+e.message)}
   }
 
   const dismissReport=async(id)=>{
@@ -255,6 +309,7 @@ export default function AdminPage() {
           ))}
         </div>
 
+        {error&&<div className={styles.error} style={{padding:'0.75rem 1rem',background:'#fef0f0',border:'1px solid #fcc',color:'var(--red)',fontSize:'13px',marginBottom:'0.75rem'}}>{error}<button onClick={()=>setError('')} style={{marginLeft:'1rem',background:'none',border:'none',cursor:'pointer',fontWeight:700}}>✕</button></div>}
         {tabLoading ? (
           <div className={styles.tabLoader}>
             <div className={styles.spinner}/>
@@ -291,7 +346,11 @@ export default function AdminPage() {
                       </div>
                       <div className={styles.cardActions}>
                         <a href={`/article/${a.id}`} target="_blank" rel="noreferrer" className={styles.viewBtn} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'4px 10px',fontSize:'12px',fontWeight:700,border:'1.5px solid var(--border)',color:'var(--mid)',textDecoration:'none',marginBottom:'0.25rem'}}><Eye size={12}/> Read</a>
-                        <button className={styles.approveBtn} onClick={()=>approve(a.id)}><CheckCircle size={13}/> Approve</button>
+                        <button className={styles.approveBtn} onClick={()=>approve(a.id)}><CheckCircle size={13}/> Approve Now</button>
+                        <button className={styles.approveBtn} style={{background:'none',color:'#185FA5',border:'1.5px solid #185FA5'}} onClick={()=>{
+                          const d=prompt('Schedule publish date/time (YYYY-MM-DD HH:MM):')
+                          if(d)approve(a.id,d)
+                        }}>Schedule</button>
                         <button className={styles.rejectBtn} onClick={()=>reject(a.id)}><XCircle size={13}/> Reject</button>
                         {a.authorEmail&&<button className={styles.mailBtn} onClick={()=>window.open(`mailto:${a.authorEmail}?subject=Re: "${a.title}"&body=Hi,\n\nRegarding your article submission.`)}><Mail size={12}/></button>}
                       </div>
@@ -367,8 +426,13 @@ export default function AdminPage() {
                       <p className={styles.cardDek}><strong>Reason:</strong> {r.reason}</p>
                     </div>
                     <div className={styles.cardActions}>
-                      <a href={`/article/${r.articleId}`} target="_blank" rel="noreferrer" className={styles.viewBtn}><Eye size={12}/></a>
-                      <button className={styles.rejectBtn} onClick={()=>dismissReport(r.id)}>Dismiss</button>
+                      <a href={`/article/${r.articleId}`} target="_blank" rel="noreferrer" className={styles.viewBtn}><Eye size={12}/> View</a>
+                      <button className={styles.approveBtn} style={{background:'none',color:'var(--mid)',border:'1.5px solid var(--border)'}} onClick={()=>dismissReport(r.id)}>Resolve</button>
+                      <button className={styles.rejectBtn} onClick={async()=>{
+                        if(!confirm('Delete this article?'))return
+                        await deleteDoc(doc(db,'articles',r.articleId)).catch(()=>{})
+                        await dismissReport(r.id)
+                      }}><Trash2 size={12}/> Remove Article</button>
                     </div>
                   </div>
                 ))}
@@ -406,7 +470,8 @@ export default function AdminPage() {
                     </div>
                     {a.status!=='approved'&&(
                       <div className={styles.cardActions}>
-                        <button className={styles.approveBtn} onClick={()=>approveApplication(a.id,a.userId)}><CheckCircle size={13}/> Approve</button>
+                        <button className={styles.approveBtn} onClick={()=>approveApplication(a.id,a.userId,a.email,a.name)}><CheckCircle size={13}/> Approve & Email</button>
+                        <button className={styles.rejectBtn} onClick={()=>rejectApplication(a.id,a.email,a.name)}><XCircle size={13}/> Reject</button>
                         <button className={styles.mailBtn} onClick={()=>window.open(`mailto:${a.email}`)}><Mail size={13}/></button>
                       </div>
                     )}
@@ -432,8 +497,15 @@ export default function AdminPage() {
                       <p className={styles.cardDek}>{l.body?.substring(0,200)}{l.body?.length>200?'...':''}</p>
                     </div>
                     <div className={styles.cardActions}>
+                      {l.status!=='approved'
+                        ?<button className={styles.approveBtn} onClick={async()=>{
+                          await updateDoc(doc(db,'letters',l.id),{status:'approved'})
+                          setData(d=>({...d,letters:(d.letters||[]).map(x=>x.id===l.id?{...x,status:'approved'}:x)}))
+                        }}><CheckCircle size={13}/> Publish</button>
+                        :<span style={{fontSize:'11px',color:'#0F6E56',fontWeight:700}}>✓ Published</span>
+                      }
                       {l.email&&<button className={styles.mailBtn} onClick={()=>window.open(`mailto:${l.email}?subject=Re: ${l.subject}`)}><Mail size={13}/></button>}
-                      <button className={styles.rejectBtn} onClick={async()=>{await deleteDoc(doc(db,'letters',l.id));setData(d=>({...d,letters:(d.letters||[]).filter(x=>x.id!==l.id)}))}}>Dismiss</button>
+                      <button className={styles.rejectBtn} onClick={async()=>{await deleteDoc(doc(db,'letters',l.id));setData(d=>({...d,letters:(d.letters||[]).filter(x=>x.id!==l.id)}))}}>Delete</button>
                     </div>
                   </div>
                 ))}
@@ -497,8 +569,17 @@ export default function AdminPage() {
                   <button className={styles.toolBtn} onClick={()=>window.open(`mailto:${(data.users||[]).map(u=>u.email).join(',')}?subject=The Voice Update&body=${encodeURIComponent(emailMsg)}`)}>Open in Mail</button>
                 </div>
                 <div className={styles.toolCard}>
-                  <h3>📰 Send Weekly Digest</h3>
-                  <p>Opens your mail client pre-filled with a link to this week's digest. Readers click through to the live page.</p>
+                  <h3>📰 Weekly Digest</h3>
+                  <p>Auto-generates every Sunday. Click below to generate now, or send the email to all subscribers.</p>
+                  <button className={styles.toolBtn} style={{marginBottom:'0.5rem'}} onClick={async()=>{
+                    const secret=prompt('Enter CRON_SECRET (from Vercel env vars):')
+                    if(!secret)return
+                    try{
+                      const r=await fetch('/api/digest',{method:'POST',headers:{authorization:`Bearer ${secret}`}})
+                      const d=await r.json()
+                      alert(d?.success?`✓ Digest generated — ${d.articleCount} articles included.`:d?.message||d?.error||'Generation failed.')
+                    }catch{ alert('Network error — check connection.') }
+                  }}>Generate Now</button>
                   <button className={styles.toolBtn} onClick={()=>{
                     const digestUrl=`${window.location.origin}/digest`
                     const subject=`The Voice Weekly Digest — ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}`

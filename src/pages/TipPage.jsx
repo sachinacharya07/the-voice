@@ -13,6 +13,9 @@ export default function TipPage() {
 
   const submit=async()=>{
     if(!form.subject.trim()||!form.message.trim())return
+    // Rate limit: max 3 tips per session
+    const tipCount = parseInt(sessionStorage.getItem('tip_count')||'0')
+    if(tipCount >= 3){alert('You have submitted too many tips. Please try again later.');return}
     setSubmitting(true)
     try {
       await addDoc(collection(db,'tips'),{
@@ -23,6 +26,7 @@ export default function TipPage() {
         userId:user?.uid||null,
         createdAt:serverTimestamp()
       })
+      sessionStorage.setItem('tip_count', String(tipCount+1))
       setSubmitted(true)
     } catch { /* silently fail */ }
     setSubmitting(false)

@@ -199,3 +199,61 @@
 /* ── DARK MODE ── */
 [data-theme="dark"] .replyItem { background: #111; border-color: #333; }
 [data-theme="dark"] .replyForm { background: #0d0d0d; }
+
+[data-theme="dark"] .summary { color: rgba(255,255,255,0.6); }
+[data-theme="dark"] .author { color: #ccc; }
+[data-theme="dark"] .tag { border-color: #333; color: #666; }
+[data-theme="dark"] .metaRow { color: #666; }
+[data-theme="dark"] .authorInit { background: #222; color: #f0ede8; }
+[data-theme="dark"] .issue { color: #666; }
+
+/* ── CORRECTION BANNER ── */
+.correctionBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(255,240,200,0.15);
+  border: 1px solid rgba(255,200,0,0.3);
+  border-left: 3px solid #d4a916;
+  padding: 0.6rem 0.9rem;
+  margin-top: 0.75rem;
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.5;
+}
+.correctionBanner svg { flex-shrink: 0; color: #d4a916; margin-top: 1px; }
+.correctionBanner strong { color: #d4a916; font-weight: 700; }
+
+/* ── PRINT STYLESHEET ── */
+@media print {
+  /* Hide everything except article */
+  :global(header), :global(nav), :global(footer),
+  :global(.pwa-banner), :global(.breaking-banner) { display: none !important; }
+  .progressBar, .actionsBar, .commentsSection,
+  .backBtn, .backToTop { display: none !important; }
+  .articleNewsletterWrap, .articleSidebarGrid { display: block !important; }
+  aside { display: none !important; }
+
+  /* Article formatting */
+  .banner { min-height: auto !important; background: #fff !important; }
+  .bannerImg { max-height: 280px; width: 100%; object-fit: cover; }
+  .bannerOverlay { display: none !important; }
+  .bannerContent { position: static !important; padding: 1.5rem 0 1rem !important; color: #000 !important; }
+  .title { color: #000 !important; font-size: 28px !important; }
+  .summary { color: #333 !important; }
+  .catTag { color: #333 !important; border-color: #333 !important; }
+  .metaRow { color: #555 !important; }
+  .body { padding: 0 !important; }
+  .body p { font-size: 13pt !important; line-height: 1.8 !important; color: #000 !important; }
+
+  /* Print footer */
+  .body::after {
+    content: 'Published in The Voice — Independent Student Journalism · ' attr(data-url);
+    display: block;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ccc;
+    font-size: 9pt;
+    color: #666;
+  }
+}

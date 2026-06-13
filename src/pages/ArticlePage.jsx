@@ -177,6 +177,7 @@ export default function ArticlePage() {
   const [scrollProgress, setScrollProgress] = useState(0)
   const [showBackTop, setShowBackTop] = useState(false)
   const [prevNext, setPrevNext] = useState({prev:null,next:null})
+  const [seriesArts, setSeriesArts] = useState([])
   const [copied, setCopied] = useState(false)
   const [headlineCopied, setHeadlineCopied] = useState(false)
   const [textSize, setTextSize] = useState(17)
@@ -184,7 +185,7 @@ export default function ArticlePage() {
 
   useEffect(() => {
     const ref = doc(db,'articles',id)
-    getDoc(ref).then(async snap => {
+    getDoc(ref).then(snap => {
       if(!snap.exists()){navigate('/not-found',{replace:true});return}
       const data={id:snap.id,...snap.data()}
       setArticle(data)
@@ -195,7 +196,7 @@ export default function ArticlePage() {
         if(!el){ el=document.createElement('meta'); el.setAttribute(attr,prop); document.head.appendChild(el) }
         el.setAttribute('content', val)
       }
-      const url = window.location.href
+      const url = `${window.location.origin}/article/${id}` // canonical URL, not current path
       const img = data.coverImage || 'https://the-voicee-lac.vercel.app/og-default.jpg'
       setMeta('description', data.summary||data.title)
       setMeta('og:title', data.title, 'property')
@@ -230,6 +231,19 @@ export default function ArticlePage() {
           next: idx > 0 ? all[idx-1] : null,
         })
       } catch {}
+      // Load series articles
+      if(data.seriesName){
+        try{
+          const seriesSnap = await getDocs(query(
+            collection(db,'articles'),
+            where('status','==','published'),
+            where('seriesName','==',data.seriesName),
+            orderBy('publishedAt','asc'),
+            limit(10)
+          ))
+          setSeriesArts(seriesSnap.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.id!==id))
+        }catch{}
+      }
       // Only count view once per browser session per article
       const viewKey = 'viewed_' + id
       if (!sessionStorage.getItem(viewKey)) {
@@ -260,47 +274,60 @@ export default function ArticlePage() {
   const toggleLike=async()=>{
     if(!user)return navigate('/auth')
     const ref=doc(db,'articles',id)
-    if(liked){await updateDoc(ref,{likes:increment(-1),likedBy:arrayRemove(user.uid)});setLikeCount(c=>c-1);setLiked(false)}
-    else{await updateDoc(ref,{likes:increment(1),likedBy:arrayUnion(user.uid)});setLikeCount(c=>c+1);setLiked(true)}
+    try{
+      if(liked){await updateDoc(ref,{likes:increment(-1),likedBy:arrayRemove(user.uid)});setLikeCount(c=>c-1);setLiked(false)}
+      else{await updateDoc(ref,{likes:increment(1),likedBy:arrayUnion(user.uid)});setLikeCount(c=>c+1);setLiked(true)}
+    }catch{}
   }
 
   const toggleBookmark=async()=>{
     if(!user)return navigate('/auth')
     const ref=doc(db,'articles',id)
-    if(bookmarked){await updateDoc(ref,{bookmarkedBy:arrayRemove(user.uid)});setBookmarked(false)}
-    else{await updateDoc(ref,{bookmarkedBy:arrayUnion(user.uid)});setBookmarked(true)}
+    try{
+      if(bookmarked){await updateDoc(ref,{bookmarkedBy:arrayRemove(user.uid)});setBookmarked(false)}
+      else{await updateDoc(ref,{bookmarkedBy:arrayUnion(user.uid)});setBookmarked(true)}
+    }catch{}
   }
 
   const addReaction=async(key)=>{
     if(!user)return navigate('/auth')
     const ref=doc(db,'articles',id)
     const prev=myReaction
-    if(prev===key){
-      await updateDoc(ref,{[`reactions.${key}`]:increment(-1),[`userReactions.${user.uid}`]:null})
-      setReactions(r=>({...r,[key]:Math.max(0,(r[key]||1)-1)}))
-      setMyReaction(null)
-    } else {
-      const updates={[`reactions.${key}`]:increment(1),[`userReactions.${user.uid}`]:key}
-      if(prev)updates[`reactions.${prev}`]=increment(-1)
-      await updateDoc(ref,updates)
-      setReactions(r=>({...r,[key]:(r[key]||0)+1,...(prev?{[prev]:Math.max(0,(r[prev]||1)-1)}:{})}))
-      setMyReaction(key)
-    }
+    try{
+      if(prev===key){
+        await updateDoc(ref,{[`reactions.${key}`]:increment(-1),[`userReactions.${user.uid}`]:null})
+        setReactions(r=>({...r,[key]:Math.max(0,(r[key]||1)-1)}))
+        setMyReaction(null)
+      } else {
+        const updates={[`reactions.${key}`]:increment(1),[`userReactions.${user.uid}`]:key}
+        if(prev)updates[`reactions.${prev}`]=increment(-1)
+        await updateDoc(ref,updates)
+        setReactions(r=>({...r,[key]:(r[key]||0)+1,...(prev?{[prev]:Math.max(0,(r[prev]||1)-1)}:{})}))
+        setMyReaction(key)
+      }
+    }catch{}
   }
 
   const submitComment=async()=>{
     if(!user||!comment.trim())return
+    if(comment.trim().length>1000){alert('Comment must be under 1000 characters.');return}
     setSubmitting(true)
-    await addDoc(collection(db,'articles',id,'comments'),{
-      text:comment.trim(),authorId:user.uid,
-      authorName:profile?.name||user.email,
-      authorPhoto:user.photoURL||null,
-      createdAt:serverTimestamp()
-    })
-    setComment('')
-    const snap=await getDocs(query(collection(db,'articles',id,'comments'),orderBy('createdAt','asc')))
-    setComments(snap.docs.map(d=>({id:d.id,...d.data()})))
-    setSubmitting(false)
+    try{
+      await addDoc(collection(db,'articles',id,'comments'),{
+        text:comment.trim().slice(0,1000),
+        authorId:user.uid,
+        authorName:profile?.name||user.email,
+        authorPhoto:user.photoURL||null,
+        createdAt:serverTimestamp()
+      })
+      setComment('')
+      const snap=await getDocs(query(collection(db,'articles',id,'comments'),orderBy('createdAt','asc')))
+      setComments(snap.docs.map(d=>({id:d.id,...d.data()})))
+    }catch{
+      alert('Failed to post comment. Please try again.')
+    }finally{
+      setSubmitting(false)
+    }
   }
 
   const submitReply=async()=>{
@@ -334,8 +361,10 @@ export default function ArticlePage() {
   }
 
   const deleteComment=async(cid)=>{
-    await deleteDoc(doc(db,'articles',id,'comments',cid))
-    setComments(cs=>cs.filter(c=>c.id!==cid))
+    try{
+      await deleteDoc(doc(db,'articles',id,'comments',cid))
+      setComments(cs=>cs.filter(c=>c.id!==cid))
+    }catch{ alert('Failed to delete comment.') }
   }
 
   const share=async()=>{
@@ -384,6 +413,12 @@ export default function ArticlePage() {
             </div>
             <h1 className={styles.title}>{article.title}</h1>
             {article.summary&&<p className={styles.summary}>{article.summary}</p>}
+            {article.correction&&(
+              <div className={styles.correctionBanner}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span><strong>Correction</strong>{article.correctionDate?` · ${article.correctionDate.toDate().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`:''}: {article.correction}</span>
+              </div>
+            )}
             {/* Pullout quote */}
             {article.pullQuote&&(
               <blockquote className={styles.pullQuote}>"{article.pullQuote}"</blockquote>
@@ -394,7 +429,7 @@ export default function ArticlePage() {
                   :<span className={styles.authorInit}>{(article.authorName||'A')[0]}</span>}
                 <span>{article.authorName}</span>
               </Link>
-              {article.coAuthorName&&<><span className={styles.sep}>·</span><span className={styles.coAuthor}>& {article.coAuthorName}</span></>}
+              {article.coAuthorName&&<><span className={styles.sep}>·</span><span className={styles.coAuthor}>& {article.coAuthorId?<Link to={`/profile/${article.coAuthorId}`} style={{color:'inherit'}}>{article.coAuthorName}</Link>:article.coAuthorName}</span></>}
               <span className={styles.sep}>·</span>
               <span>{ago(article.publishedAt)}</span>
               <span className={styles.sep}>·</span>
@@ -453,6 +488,23 @@ export default function ArticlePage() {
           <div className={styles.body} style={{fontSize:`${textSize}px`}}>
             {renderBody(article.body, article.inlineImages||[])}
           </div>
+
+          {/* Series navigation */}
+          {seriesArts.length>0&&(
+            <div style={{border:'1px solid var(--border)',padding:'1.25rem',margin:'2rem 0 0',background:'var(--off)'}}>
+              <div style={{fontSize:'9px',fontWeight:800,letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--red)',marginBottom:'0.85rem'}}>
+                In this series: {article.seriesName}
+              </div>
+              {seriesArts.map(a=>(
+                <Link key={a.id} to={`/article/${a.id}`}
+                  style={{display:'block',padding:'0.6rem 0',borderBottom:'1px solid var(--border)',color:'var(--black)',fontSize:'13.5px',fontFamily:'var(--serif)',fontWeight:600,lineHeight:1.35,transition:'color 0.15s'}}
+                  onMouseEnter={e=>e.currentTarget.style.color='var(--red)'}
+                  onMouseLeave={e=>e.currentTarget.style.color='var(--black)'}>
+                  {a.title}
+                </Link>
+              ))}
+            </div>
+          )}
 
           {/* Prev / Next navigation */}
           {(prevNext.prev||prevNext.next)&&(
@@ -520,7 +572,7 @@ export default function ArticlePage() {
               {comments.filter(cm=>!cm.replyTo).map(cm=>(
                 <div key={cm.id} className={styles.commentThread}>
                   <div className={styles.commentItem}>
-                    {cm.authorPhoto?<img src={cm.authorPhoto} alt="" className={styles.commentAvatar}/>
+                    {cm.authorPhoto?<img src={cm.authorPhoto} alt="" className={styles.commentAvatar} loading="lazy" decoding="async"/>
                       :<span className={styles.commentInit}>{(cm.authorName||'A')[0]}</span>}
                     <div className={styles.commentBody}>
                       <div className={styles.commentMeta}>
@@ -547,7 +599,7 @@ export default function ArticlePage() {
                   {/* Replies */}
                   {comments.filter(r=>r.replyTo===cm.id).map(reply=>(
                     <div key={reply.id} className={styles.replyItem}>
-                      {reply.authorPhoto?<img src={reply.authorPhoto} alt="" className={styles.commentAvatar} style={{width:28,height:28}}/>
+                      {reply.authorPhoto?<img src={reply.authorPhoto} alt="" className={styles.commentAvatar} style={{width:28,height:28}} loading="lazy" decoding="async"/>
                         :<span className={styles.commentInit} style={{width:28,height:28,fontSize:'10px'}}>{(reply.authorName||'A')[0]}</span>}
                       <div className={styles.commentBody}>
                         <div className={styles.commentMeta}>

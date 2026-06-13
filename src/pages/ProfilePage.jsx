@@ -81,12 +81,13 @@ export default function ProfilePage() {
     if (!isSelf || !user) return
     setSaving(true)
     try {
+      // Only safe profile fields — never send role, uid, email
       const data = {
-        name: editForm.name.trim().slice(0, 80),
-        bio: editForm.bio.trim().slice(0, 300),
-        website: editForm.website.trim().slice(0, 200),
-        twitter: editForm.twitter.trim().replace(/^@/, '').slice(0, 50),
-        instagram: editForm.instagram.trim().replace(/^@/, '').slice(0, 50),
+        name: editForm.name.trim().replace(/<[^>]*>/g,'').slice(0, 80),
+        bio: editForm.bio.trim().replace(/<[^>]*>/g,'').slice(0, 300),
+        website: editForm.website.trim().replace(/<[^>]*>/g,'').slice(0, 200),
+        twitter: editForm.twitter.trim().replace(/^@/,'').replace(/[^a-zA-Z0-9_]/g,'').slice(0, 50),
+        instagram: editForm.instagram.trim().replace(/^@/,'').replace(/[^a-zA-Z0-9_.]/g,'').slice(0, 50),
         updatedAt: serverTimestamp(),
       }
       await updateDoc(doc(db, 'users', user.uid), data)
@@ -97,22 +98,23 @@ export default function ProfilePage() {
   }
 
   const uploadAvatar = async (file) => {
-    if (!file || !isSelf || !user) return
+    if (!file || !isSelf) return
     setAvatarUploading(true)
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('upload_preset', CLOUDINARY_PRESET)
-      // Note: do NOT set Content-Type header — browser sets it automatically with correct boundary
+      const toBase64 = f => new Promise((res, rej) => {
+        const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f)
+      })
+      const b64 = await toBase64(file)
       const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
-        method: 'POST',
-        body: formData,
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: b64, upload_preset: CLOUDINARY_PRESET,
+          transformation: 'w_200,h_200,c_fill,g_face,r_max' })
       })
       const data = await resp.json()
-      if (!data.secure_url) throw new Error(data.error?.message || 'Upload failed')
+      if (!data.secure_url) throw new Error('Upload failed')
       await updateDoc(doc(db, 'users', user.uid), { photo: data.secure_url })
       setProfile(p => ({ ...p, photo: data.secure_url }))
-    } catch (err) { alert(`Avatar upload failed: ${err.message}`) }
+    } catch { alert('Avatar upload failed.') }
     setAvatarUploading(false)
   }
 
@@ -148,7 +150,7 @@ export default function ProfilePage() {
           {/* Avatar */}
           <div className={styles.avatarWrap}>
             {profile.photo
-              ? <img src={profile.photo.replace('/upload/', '/upload/w_200,h_200,c_fill,g_face,r_max/')} alt={profile.name} className={styles.avatar} referrerPolicy="no-referrer"/>
+              ? <img src={profile.photo} alt={profile.name} className={styles.avatar} referrerPolicy="no-referrer"/>
               : <span className={styles.avatarInit}>{(profile.name||'U')[0].toUpperCase()}</span>
             }
             {isSelf && (

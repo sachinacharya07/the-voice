@@ -290,3 +290,5 @@
   .select { flex: 1; }
   .tags { display: none; }
 }
+
+[data-theme="dark"] .badge { background: #333; }

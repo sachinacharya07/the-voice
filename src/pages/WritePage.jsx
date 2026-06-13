@@ -8,21 +8,21 @@ import { uploadImage } from '../lib/cloudinary'
 import PageWrapper from '../components/PageWrapper'
 import styles from './WritePage.module.css'
 
-function insertFormat(ta, before, after, placeholder) {
-  const start = ta.selectionStart
-  const end = ta.selectionEnd
-  const selected = ta.value.substring(start, end)
-  const insertion = before + (selected || placeholder) + after
-  const value = ta.value.substring(0, start) + insertion + ta.value.substring(end)
-  const cursor = start + before.length + (selected || placeholder).length + after.length
-  return { value, cursor }
-}
-
 const CATEGORIES = [
   {value:'school',label:'School & College'},{value:'science',label:'Science & Technology'},
   {value:'sports',label:'Sports'},{value:'arts',label:'Arts & Culture'},
   {value:'world',label:'World News'},{value:'opinion',label:'Opinion & Editorial'},
 ]
+
+// ── toolbar helper ──────────────────────────────────────────
+function insertFormat(textarea, before, after='', placeholder='text') {
+  const start = textarea.selectionStart
+  const end   = textarea.selectionEnd
+  const sel   = textarea.value.substring(start, end) || placeholder
+  const inserted = before + sel + after
+  const newVal = textarea.value.substring(0, start) + inserted + textarea.value.substring(end)
+  return { value: newVal, cursor: start + before.length + sel.length + after.length }
+}
 
 export default function WritePage() {
   const { user, profile } = useAuth()
@@ -34,7 +34,7 @@ export default function WritePage() {
   const bodyRef = useRef()
   const saveTimer = useRef()
 
-  const [form, setForm] = useState({title:'',category:'school',subGenre:'',summary:'',body:'',pullQuote:'',coAuthorName:'',coAuthorEmail:''})
+  const [form, setForm] = useState({title:'',category:'school',subGenre:'',seriesName:'',summary:'',body:'',pullQuote:'',coAuthorName:'',coAuthorEmail:''})
   const [tags, setTags] = useState([])
   const [tagInput, setTagInput] = useState('')
   const [sources, setSources] = useState([''])
@@ -55,7 +55,7 @@ export default function WritePage() {
     getDoc(doc(db,'articles',editId)).then(snap=>{
       if(!snap.exists())return
       const d=snap.data()
-      setForm({title:d.title||'',category:d.category||'school',subGenre:d.subGenre||'',summary:d.summary||'',body:d.body||'',pullQuote:d.pullQuote||'',coAuthorName:d.coAuthorName||'',coAuthorEmail:d.coAuthorEmail||''})
+      setForm({title:d.title||'',category:d.category||'school',subGenre:d.subGenre||'',seriesName:d.seriesName||'',summary:d.summary||'',body:d.body||'',pullQuote:d.pullQuote||'',coAuthorName:d.coAuthorName||'',coAuthorEmail:d.coAuthorEmail||''})
       setTags(d.tags||[])
       setSources(d.sources||[''])
       setCoverImage(d.coverImage||null)
@@ -69,8 +69,15 @@ export default function WritePage() {
     if(!form.title&&!form.body)return
     clearTimeout(saveTimer.current)
     saveTimer.current=setTimeout(()=>{
-      const draft={...form,tags,sources,coverImage,inlineImages,...sections,savedAt:Date.now()}
-      localStorage.setItem('voice_draft',JSON.stringify(draft))
+      // Save draft without large binary data — just URLs
+      const draft={...form,tags,sources,
+        coverImage:typeof coverImage==='string'?coverImage:null,
+        inlineImages:inlineImages.map(({url,caption})=>({url,caption})),
+        ...sections,savedAt:Date.now()}
+      const draftStr=JSON.stringify(draft)
+      if(draftStr.length<500000){  // 500KB limit
+        try{ localStorage.setItem('voice_draft',draftStr) }catch{}
+      }
       setLastSaved(new Date())
       setIsDraft(true)
     },30000)
@@ -128,7 +135,7 @@ export default function WritePage() {
     if(uploading){setError('Please wait for image upload to finish.');return}
     setSubmitting(true);setError('')
     const data={
-      title:form.title.trim().slice(0,300),category:form.category,subGenre:form.subGenre.trim().replace(/<[^>]*>/g,'').slice(0,80),summary:form.summary.trim().slice(0,600),
+      title:form.title.trim().slice(0,300),category:form.category,subGenre:form.subGenre.trim().replace(/<[^>]*>/g,'').slice(0,80),seriesName:form.seriesName.trim().slice(0,100),summary:form.summary.trim().slice(0,600),
       body:form.body.trim(),pullQuote:form.pullQuote.trim(),
       coAuthorName:form.coAuthorName.trim(),coAuthorEmail:form.coAuthorEmail.trim(),
       coverImage:coverImage||null,inlineImages,tags,
@@ -163,7 +170,7 @@ export default function WritePage() {
           <p>Your article is under editorial review. It'll go live once approved.</p>
           <div className={styles.successActions}>
             <button onClick={()=>navigate('/dashboard')} className={styles.btnBlack}>View my dashboard</button>
-            <button onClick={()=>{setSuccess(false);setForm({title:'',category:'school',subGenre:'',summary:'',body:'',pullQuote:'',coAuthorName:'',coAuthorEmail:''});setTags([]);setSources(['']);setCoverImage(null);setCoverPreview(null);setInlineImages([]);setSections({isOriginal:false,isExplained:false,isBplus:false})}} className={styles.btnOutline}>Write another</button>
+            <button onClick={()=>{setSuccess(false);setForm({title:'',category:'school',subGenre:'',seriesName:'',summary:'',body:'',pullQuote:'',coAuthorName:'',coAuthorEmail:''});setTags([]);setSources(['']);setCoverImage(null);setCoverPreview(null);setInlineImages([]);setSections({isOriginal:false,isExplained:false,isBplus:false})}} className={styles.btnOutline}>Write another</button>
           </div>
         </div>
       </div>
@@ -222,6 +229,14 @@ export default function WritePage() {
           <label className={styles.label}>Sub-genre <span className={styles.optional}>(optional — e.g. Movie Review, Book Review, Campus Life)</span></label>
           <input className={styles.input} value={form.subGenre} onChange={e=>setForm(f=>({...f,subGenre:e.target.value}))}
             placeholder="e.g. Movie Review, Interview, Photo Essay, Opinion..."/>
+        </div>
+
+        <div className={styles.section}>
+          <label className={styles.label}>Part of a series? <span className={styles.optional}>(optional)</span></label>
+          <input className={styles.input} value={form.seriesName}
+            onChange={e=>setForm(f=>({...f,seriesName:e.target.value}))}
+            placeholder="e.g. NEET Crisis, Budget 2026 Explained, Campus Voices…" maxLength={100}/>
+          <p className={styles.hint}>Articles with the same series name will be grouped together at the bottom of each piece.</p>
         </div>
 
         <div className={styles.section}>

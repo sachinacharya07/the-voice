@@ -139,3 +139,9 @@
 }
 .pinBtn:hover { border-color: #854F0B; color: #854F0B; }
 .pinOn { border-color: #854F0B !important; background: #854F0B !important; color: #fff !important; }
+
+[data-theme="dark"] .edPickBadge { background: #1a1a0a; color: #d4a916; border-color: #d4a916; }
+[data-theme="dark"] .factBadge { background: #001a0f; color: #22c55e; border-color: #22c55e; }
+[data-theme="dark"] .cardDek { color: #666; }
+[data-theme="dark"] .pickOn { background: #d4a916 !important; }
+[data-theme="dark"] .factOn { background: #22c55e !important; }

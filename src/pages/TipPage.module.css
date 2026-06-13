@@ -20,3 +20,9 @@
 .success h2{font-family:var(--serif);font-size:26px;margin-bottom:0.5rem}
 .success p{font-size:14px;color:var(--mid)}
 @media(max-width:600px){.nameRow{grid-template-columns:1fr}}
+
+[data-theme="dark"] .successIcon { background: #f0ede8; color: #0d0d0d; }
+[data-theme="dark"] .wrap { background: transparent; }
+[data-theme="dark"] .header h1 { color: #f0ede8; }
+[data-theme="dark"] .label { color: #888; }
+[data-theme="dark"] .input, [data-theme="dark"] .textarea { background: #111; border-color: #333; color: #f0ede8; }
