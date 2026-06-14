@@ -38,9 +38,9 @@ export function PWAProvider({ children }) {
     // Check push support
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       setPushSupported(true)
-      navigator.serviceWorker.ready.then(reg => {
+      navigator.serviceWorker.ready.then(async reg => {
         setSwReady(true)
-        reg.pushManager.getSubscription().then(sub => {
+        reg.pushManager.getSubscription().then(async sub => {
           if (sub) setPushEnabled(true)
         })
       })
