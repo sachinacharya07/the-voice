@@ -58,7 +58,7 @@ export default function AdminPage() {
 
   // Load pinned article id once
   useEffect(()=>{
-    getDoc(doc(db,'settings','pinnedHero')).then(snap=>{
+    getDoc(doc(db,'settings','pinnedHero')).then(async snap=>{
       if(snap.exists()) setPinnedId(snap.data().articleId||null)
     }).catch(()=>{})
   },[])
@@ -87,7 +87,7 @@ export default function AdminPage() {
       getDocs(query(collection(db,'articles'),where('status','==','pending'),limit(50))),
       getDocs(query(collection(db,'newsletter'),limit(500))),
       getDocs(collection(db,'users')),
-    ]).then(([pub,pend,news,usrs])=>{
+    ]).then(async ([pub,pend,news,usrs])=>{
       const pubArr=pub.docs.map(d=>d.data())
       setStats({
         total:pubArr.length,
@@ -153,7 +153,7 @@ export default function AdminPage() {
       // Fetch fresh pending list directly — can't use loadTab() here because
       // refresh() is async setState and the cache check would still see stale data
       setTabLoading(true)
-      fetchTab('pending').then(result => {
+      fetchTab('pending').then(async result => {
         setData(d=>({...d,pending:result}))
         setTabLoading(false)
       }).catch(()=>setTabLoading(false))
